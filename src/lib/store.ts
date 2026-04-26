@@ -282,7 +282,8 @@ export const useAppStore = create<AppState>()(
                 console.log("[Task] RPC Success:", res);
               }
               
-              const alreadyDone = res && res.message === 'already_done';
+              // res is only defined if we hit the cloud. If local, it's never 'alreadyDone'.
+              const alreadyDone = userId ? (res && res.message === 'already_done') : false;
 
               if (!alreadyDone) {
                 const earned = award(
