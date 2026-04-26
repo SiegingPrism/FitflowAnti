@@ -262,7 +262,13 @@ export const useAppStore = create<AppState>()(
             try {
               if (userId) {
                 console.log(`[Task] Synced user detected (${userId}). hitting complete_task RPC...`);
-                const { data, error } = await supabase.rpc('complete_task', { p_task_id: id });
+                const { data, error } = await supabase.rpc('complete_task', { 
+                  p_task_id: id,
+                  p_title: task.title,
+                  p_xp: task.xp,
+                  p_priority: task.priority,
+                  p_category: task.category
+                });
                 const res = data as { success?: boolean; message?: string } | null;
                 
                 if (error) {
