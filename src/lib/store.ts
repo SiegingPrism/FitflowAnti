@@ -494,7 +494,7 @@ export const useAppStore = create<AppState>()(
             onboardedAt: now,
             habits: [...newHabits, ...s.habits],
           }));
-          award({ type: "login" }, "Welcome to FlowSphere");
+          award({ type: "login" }, "Welcome to FlowFit");
 
           const userId = get().userId;
           if (userId) {
@@ -598,7 +598,7 @@ export const useAppStore = create<AppState>()(
       };
     },
     {
-      name: "flowsphere-store",
+      name: "flowfit-store",
       version: 3,
       // Only persist data, not auth-bound flags
       partialize: (s) => ({
