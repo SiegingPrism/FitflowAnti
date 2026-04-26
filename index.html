@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>FlowSphere — Your productivity, beautifully tracked</title>
+    <meta name="description" content="FlowSphere is your all-in-one productivity OS: tasks, focus, habits, wellbeing, and AI coaching in one beautiful interface." />
+    <meta name="author" content="FlowSphere" />
+    <meta name="theme-color" content="#6366f1" />
+
+    <meta property="og:title" content="FlowSphere — Your productivity, beautifully tracked" />
+    <meta property="og:description" content="Tasks, focus, habits, wellbeing, and AI coaching in one beautiful interface." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/placeholder.svg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Apply persisted theme synchronously to avoid FOUC and ensure
+      // Aurora/Carbon/Solar persist across refresh and new tabs.
+      (function () {
+        try {
+          var ALL = ['light', 'dark', 'aurora', 'carbon', 'solar'];
+          var t = localStorage.getItem('flowsphere-theme');
+          if (!t || ALL.indexOf(t) === -1) t = 'dark';
+          var html = document.documentElement;
+          ALL.forEach(function (id) { html.classList.remove('theme-' + id); });
+          html.classList.remove('light', 'dark');
+          if (t === 'light') html.classList.add('light');
+          else html.classList.add('dark');
+          if (t !== 'light' && t !== 'dark') html.classList.add('theme-' + t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
