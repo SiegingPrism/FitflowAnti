@@ -248,7 +248,9 @@ export const useAppStore = create<AppState>()(
             if (userId) {
               try {
                 const { data, error } = await supabase.rpc('complete_task', { p_task_id: id });
-                if (error || (data && data.success === false)) {
+                const res = data as { success?: boolean; message?: string } | null;
+                
+                if (error || (res && res.success === false)) {
                   // Rollback optimistic update
                   set((s) => ({
                     tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
@@ -348,13 +350,14 @@ export const useAppStore = create<AppState>()(
             if (userId) {
                try {
                   const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+                  const res = data as { success?: boolean; message?: string } | null;
                   
                   // If error is 'Already checked in', we don't need to roll back, 
                   // as the local state and server state are now in sync.
-                  const alreadyDone = data && data.success === false && data.message?.includes('already');
+                  const alreadyDone = res && res.success === false && res.message?.includes('already');
                   
-                  if (error || (data && data.success === false && !alreadyDone)) {
-                     console.error("[habit checkin] failed:", error || data?.message);
+                  if (error || (res && res.success === false && !alreadyDone)) {
+                     console.error("[habit checkin] failed:", error || res?.message);
                      // Rollback optimistic update
                      set((s) => ({
                        habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
