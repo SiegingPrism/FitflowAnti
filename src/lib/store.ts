@@ -372,6 +372,24 @@ export const useAppStore = create<AppState>()(
                   const alreadyDone = res && res.success === false && res.message?.includes('already');
                   
                   if (error || (res && res.success === false && !alreadyDone)) {
+                     // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
+                     const isMissing = error && (error as any).code === '23503';
+                     if (isMissing) {
+                        console.log("[Habit] Habit missing from cloud, self-healing...");
+                        await supabase.from("habits").insert({
+                          id,
+                          user_id: userId,
+                          name: habit.name,
+                          emoji: habit.emoji,
+                          color: habit.color,
+                          target_per_week: habit.targetPerWeek,
+                          category: habit.category ?? null,
+                        });
+                        // Retry check-in
+                        const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+                        if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
+                     }
+
                      console.error("[habit checkin] failed:", error || res?.message);
                      // Rollback optimistic update
                      set((s) => ({
@@ -823,7 +841,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         completed: t.completed,
         completed_at: t.completedAt ?? null,
       }));
-      inserts.push(supabase.from("tasks").insert(rows));
+      await supabase.from("tasks").insert(rows);
     }
 
     if (local.habits.length) {
@@ -836,7 +854,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         target_per_week: h.targetPerWeek,
         category: h.category ?? null,
       }));
-      inserts.push(supabase.from("habits").insert(rows));
+      await supabase.from("habits").insert(rows);
 
       const checkinRows = local.habits.flatMap((h) =>
         h.history.map((date) => ({
