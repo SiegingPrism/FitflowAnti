@@ -5,6 +5,7 @@ import { PeakHourCard, LevelCard } from "@/components/dashboard/SideCards";
 import { TodayTasks } from "@/components/dashboard/TodayTasks";
 import { QuickHealth } from "@/components/dashboard/QuickHealth";
 import { HabitsStrip } from "@/components/dashboard/HabitsStrip";
+import { LifeBalanceRadar } from "@/components/dashboard/LifeBalanceRadar";
 import { format } from "date-fns";
 
 const Dashboard = () => {
@@ -16,38 +17,49 @@ const Dashboard = () => {
         subtitle={format(new Date(), "EEEE, MMMM d")}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5">
-        <HeroCard />
-        <div className="flex flex-col gap-4 md:gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+        <div className="lg:col-span-8">
+          <HeroCard />
+        </div>
+        <div className="lg:col-span-4 flex flex-col gap-4">
           <PeakHourCard />
           <LevelCard />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mt-4 md:mt-5">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 mt-4 md:mt-5">
+        <div className="lg:col-span-4">
+          <LifeBalanceRadar />
+        </div>
+        <div className="lg:col-span-8">
           <TodayTasks />
         </div>
-        <HabitsStrip />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 mt-4 md:mt-5">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 mt-4 md:mt-5">
+        <div className="lg:col-span-8">
           <QuickHealth />
         </div>
-        <div className="glass-card flex flex-col justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Smart Layer</p>
-            <h2 className="text-xl font-display font-bold mt-1">AI Coach</h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              Adaptive suggestions powered by your patterns. Open the coach to see today's nudge.
+        <div className="lg:col-span-4">
+          <HabitsStrip />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 md:gap-5 mt-4 md:mt-5">
+        <div className="glass-card flex flex-col md:flex-row items-center justify-between gap-6 p-8">
+          <div className="flex-1">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Intelligence Layer</p>
+            <h2 className="text-2xl font-display font-bold mt-1">AI Flow Coach</h2>
+            <p className="text-muted-foreground mt-2 max-w-2xl">
+              The Cross-Life OS is analyzing your patterns across 8 branches. 
+              Based on your Focus levels and Health ritual consistency, I've prepared a custom optimization plan.
             </p>
           </div>
           <a
             href="/coach"
-            className="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-gradient-primary text-primary-foreground text-sm font-semibold shadow-elevated hover:shadow-glow transition-smooth"
+            className="w-full md:w-auto inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-r from-primary to-accent text-primary-foreground font-bold shadow-glow hover:scale-105 transition-bounce whitespace-nowrap"
           >
-            Open coach →
+            Open Coach Insights →
           </a>
         </div>
       </div>
