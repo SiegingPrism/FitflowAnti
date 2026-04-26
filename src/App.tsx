@@ -37,6 +37,27 @@ const FullScreenLoader = () => (
   </div>
 );
 
+const ConfigError = () => (
+  <div className="min-h-screen relative flex items-center justify-center p-6 text-center">
+    <AnimatedBackground />
+    <div className="glass-card max-w-md relative z-10">
+      <h1 className="text-2xl font-bold mb-4">Configuration Missing</h1>
+      <p className="text-muted-foreground mb-6">
+        The application is missing its connection to Supabase. Please add 
+        <code className="bg-black/20 px-1 rounded mx-1">VITE_SUPABASE_URL</code> and 
+        <code className="bg-black/20 px-1 rounded mx-1">VITE_SUPABASE_PUBLISHABLE_KEY</code> 
+        to your Vercel Environment Variables.
+      </p>
+      <button 
+        onClick={() => window.location.reload()}
+        className="w-full bg-gradient-primary py-3 rounded-xl font-bold shadow-glow"
+      >
+        Retry Connection
+      </button>
+    </div>
+  </div>
+);
+
 const ProtectedRoutes = () => {
   const { session, loading } = useAuth();
   const location = useLocation();
@@ -78,24 +99,30 @@ const ProtectedRoutes = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/*" element={<ProtectedRoutes />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const isConfigured = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
+
+  if (!isConfigured) return <ConfigError />;
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/*" element={<ProtectedRoutes />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
