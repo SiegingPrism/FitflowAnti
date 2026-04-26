@@ -70,7 +70,12 @@ const TaskRow = ({ task, onToggle }: { task: Task; onToggle: () => void }) => (
     )}
   >
     <button
-      onClick={onToggle}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`[UI] Task clicked in TodayTasks: ${task.id}`);
+        onToggle();
+      }}
       className={cn(
         "w-6 h-6 rounded-lg border-2 shrink-0 flex items-center justify-center transition-bounce",
         task.completed

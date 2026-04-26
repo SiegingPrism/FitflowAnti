@@ -120,7 +120,12 @@ const TaskRow = ({ task, onToggle, onRemove }: { task: Task; onToggle: () => voi
     className={cn("group flex items-center gap-3 p-3 rounded-xl border border-border/40 hover:border-primary/30 transition-smooth", task.completed && "opacity-70")}
   >
     <button
-      onClick={onToggle}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log(`[UI] Task clicked in TasksPage: ${task.id}`);
+        onToggle();
+      }}
       className={cn(
         "w-6 h-6 rounded-lg border-2 shrink-0 flex items-center justify-center transition-bounce",
         task.completed ? "bg-gradient-primary border-transparent text-primary-foreground" : "border-border hover:border-primary",

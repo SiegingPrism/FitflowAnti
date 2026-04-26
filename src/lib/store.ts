@@ -236,13 +236,19 @@ export const useAppStore = create<AppState>()(
           }
         },
         toggleTask: async (id) => {
+          console.log(`[Task] Toggling task: ${id}`);
           const state = get();
           const task = state.tasks.find((t) => t.id === id);
-          if (!task) return;
+          if (!task) {
+            console.error(`[Task] Task with id ${id} not found in store.`);
+            return;
+          }
 
           const willComplete = !task.completed;
           const completedAt = willComplete ? new Date().toISOString() : undefined;
           
+          console.log(`[Task] Status will be: ${willComplete ? 'Completed' : 'Open'}`);
+
           // Optimistic UI update
           set((s) => ({
             tasks: s.tasks.map((t) =>
@@ -255,22 +261,29 @@ export const useAppStore = create<AppState>()(
           if (willComplete) {
             try {
               if (userId) {
+                console.log(`[Task] Synced user detected (${userId}). hitting complete_task RPC...`);
                 const { data, error } = await supabase.rpc('complete_task', { p_task_id: id });
                 const res = data as { success?: boolean; message?: string } | null;
                 
-                if (error || (res && res.success === false)) {
-                   console.warn("[Task] Sync failed, rolling back. Error:", error || res?.message);
-                   throw new Error("Sync failed");
+                if (error) {
+                   console.error("[Task] RPC Error:", error);
+                   throw new Error(error.message);
                 }
+                if (res && res.success === false) {
+                   console.warn("[Task] RPC Success: false. Message:", res.message);
+                   throw new Error(res.message);
+                }
+                console.log("[Task] RPC Success:", res);
               }
               
-              // Only award XP IF the task is actually being completed (not toggled off)
-              award(
+              const earned = award(
                 { type: "task", priority: task.priority, category: task.category },
                 `Completed: ${task.title}`,
-                !!userId // skip local cloud sync if we already hit the RPC
+                !!userId 
               );
+              console.log(`[Task] Awarded ${earned} XP. Total now: ${get().totalXP}`);
             } catch (e) {
+              console.error("[Task] Final Error, rolling back optimistic state:", e);
               // Rollback optimistic update
               set((s) => ({
                 tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
@@ -279,6 +292,7 @@ export const useAppStore = create<AppState>()(
           } else {
             // Un-completing
             if (userId) {
+              console.log("[Task] Un-completing task on cloud...");
               safe(
                 supabase
                   .from("tasks")
