@@ -348,7 +348,13 @@ export const useAppStore = create<AppState>()(
             if (userId) {
                try {
                   const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                  if (error || (data && data.success === false)) {
+                  
+                  // If error is 'Already checked in', we don't need to roll back, 
+                  // as the local state and server state are now in sync.
+                  const alreadyDone = data && data.success === false && data.message?.includes('already');
+                  
+                  if (error || (data && data.success === false && !alreadyDone)) {
+                     console.error("[habit checkin] failed:", error || data?.message);
                      // Rollback optimistic update
                      set((s) => ({
                        habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
@@ -362,6 +368,7 @@ export const useAppStore = create<AppState>()(
                     true 
                   );
                } catch (e) {
+                 console.error("[habit checkin] network error:", e);
                  // Rollback on network error
                  set((s) => ({
                    habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
@@ -453,8 +460,21 @@ export const useAppStore = create<AppState>()(
           }
         },
         setMood: (mood) => {
+          const t = today();
+          const state = get();
+          
+          // XP Limit Logic: 3 times a day OR after a focus session
+          const xpToday = state.xpHistory.filter(e => e.at.startsWith(t) && e.reason.includes("Mood logged")).length;
+          const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(t)).length;
+          const allowedLimit = 3 + focusToday;
+
           get().logHealth({ mood });
-          award({ type: "health", kind: "mood" }, `Mood logged: ${mood}/5`);
+          
+          if (xpToday < allowedLimit) {
+            award({ type: "health", kind: "mood" }, `Mood logged: ${mood}/5`);
+          } else {
+            console.log("[XP] Mood XP limit reached for today (max 3 + focus sessions)");
+          }
         },
 
         awardFor: award,
@@ -700,10 +720,12 @@ async function hydrateFromCloud(
       primaryGoal: (profile?.primary_goal ?? undefined) as PrimaryGoal | undefined,
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
       onboardedAt: profile?.onboarded_at ?? undefined,
+      hydrated: true, // Ensure hydration flag is set even if some data is partial
     });
   } catch (err) {
     console.error("[hydrate] failed:", err);
     // Fall back to localStorage cache (already in store)
+    set({ hydrated: true });
   }
 }
 
