@@ -66,9 +66,11 @@ const ProtectedRoutes = () => {
   const onboardedAt = useAppStore((s) => s.onboardedAt);
 
   useEffect(() => {
+    if (loading) return;
+    
     if (session?.user) {
       bindUser(session.user.id);
-    } else if (!loading) {
+    } else {
       bindUser(null);
     }
   }, [session?.user?.id, loading, bindUser]);

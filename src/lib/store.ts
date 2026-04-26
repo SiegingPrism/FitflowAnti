@@ -375,9 +375,9 @@ export const useAppStore = create<AppState>()(
                   
                   // If error is 'Already checked in', we don't need to roll back, 
                   // as the local state and server state are now in sync.
-                  const alreadyDone = res && res.success === false && res.message?.includes('already');
+                  const alreadyDone = res && res.message === 'already_done';
                   
-                  if (error || (res && res.success === false && !alreadyDone)) {
+                  if (error || (res && res.success === false)) {
                      // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
                      const isMissing = error && (error as any).code === '23503';
                      if (isMissing) {
@@ -403,12 +403,13 @@ export const useAppStore = create<AppState>()(
                      }));
                      return;
                   }
-                  // Local XP award (skip cloud sync since RPC handled it)
-                  award(
-                    { type: "habit", emoji: habit.emoji, category: habit.category },
-                    `Habit: ${habit.name}`,
-                    true 
-                  );
+                  
+                  // Only award XP if this is the FIRST time today
+                  if (!alreadyDone) {
+                    award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
+                  } else {
+                    console.log("[Habit] Already done today, skipping XP award.");
+                  }
                } catch (e) {
                  console.error("[habit checkin] network error:", e);
                  // Rollback on network error
