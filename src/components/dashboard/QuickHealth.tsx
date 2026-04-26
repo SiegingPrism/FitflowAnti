@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useAppStore, todayKey } from "@/lib/store";
 import { Droplets, Footprints, Activity, Plus } from "lucide-react";
+import { toast } from "sonner";
 
 const moods = [
   { v: 1 as const, e: "😞" },
@@ -13,9 +14,15 @@ const moods = [
 export const QuickHealth = () => {
   const { healthLogs, logHealth, setMood } = useAppStore();
   const today = todayKey();
+  const state = useAppStore();
   const log = healthLogs.find((l) => l.date === today) ?? { date: today, waterMl: 0, steps: 0, workouts: 0 };
   const waterPct = Math.min(100, (log.waterMl / 2500) * 100);
   const stepsPct = Math.min(100, (log.steps / 8000) * 100);
+
+  // XP Limit calculation
+  const xpToday = state.xpHistory.filter(e => e.at.startsWith(today) && e.reason.includes("Mood logged")).length;
+  const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(today)).length;
+  const canAwardMood = xpToday < (3 + focusToday);
 
   return (
     <motion.section
@@ -82,18 +89,31 @@ export const QuickHealth = () => {
       <div className="mt-5 pt-4 border-t border-border/40">
         <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">How are you feeling?</p>
         <div className="flex items-center justify-between gap-1">
-          {moods.map((m) => (
-            <button
-              key={m.v}
-              onClick={() => setMood(m.v)}
-              className={`flex-1 py-2 rounded-xl text-2xl transition-bounce hover:scale-110 ${
-                log.mood === m.v ? "bg-primary/15 scale-110 shadow-glow" : "hover:bg-muted"
-              }`}
-              aria-label={`Mood ${m.v}`}
-            >
-              {m.e}
-            </button>
-          ))}
+          {moods.map((m) => {
+            const isSelected = log.mood === m.v;
+            return (
+              <button
+                key={m.v}
+                onClick={() => {
+                  if (canAwardMood) {
+                    setMood(m.v);
+                  } else {
+                    toast.info("Mood XP limit reached! Complete focus sessions to earn more bonus XP.", {
+                      description: "You can log mood 3x daily + 1 extra for each focus session.",
+                      icon: "⏳"
+                    });
+                    setMood(m.v); // Still log the mood, just won't give XP (handled in store)
+                  }
+                }}
+                className={`flex-1 py-2 rounded-xl text-2xl transition-bounce hover:scale-110 ${
+                  isSelected ? "bg-primary/15 scale-110 shadow-glow" : "hover:bg-muted"
+                }`}
+                aria-label={`Mood ${m.v}`}
+              >
+                {m.e}
+              </button>
+            );
+          })}
         </div>
       </div>
     </motion.section>

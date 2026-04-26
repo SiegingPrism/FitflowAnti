@@ -34,7 +34,7 @@ const SettingsPage = () => {
     const blob = new Blob([JSON.stringify({ tasks, habits, focusSessions, healthLogs, xpHistory, totalXP, userName }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `flowsphere-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    a.href = url; a.download = `flowfit-${new Date().toISOString().slice(0,10)}.json`; a.click();
     URL.revokeObjectURL(url);
     toast.success("Data exported");
   };
@@ -58,7 +58,7 @@ const SettingsPage = () => {
         supabase.from("profiles").update({ total_xp: 0, onboarded_at: null, primary_goal: null }).eq("user_id", user.id),
       ]);
       clearLocal();
-      localStorage.removeItem("flowsphere-store");
+      localStorage.removeItem("flowfit-store");
       toast.success("Reset complete. Reloading…");
       setTimeout(() => window.location.reload(), 800);
     } catch (err) {
@@ -285,7 +285,7 @@ const SettingsPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  localStorage.removeItem("flowsphere-unlocked-themes-seen");
+                  localStorage.removeItem("flowfit-unlocked-themes-seen");
                   toast.success("Unlock celebrations reset — refresh to re-trigger modals.");
                 }}
               >
@@ -297,7 +297,7 @@ const SettingsPage = () => {
 
         <FadeIn delay={0.15} className="glass-card lg:col-span-2">
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">About</p>
-          <h3 className="text-lg font-display font-bold">FlowSphere</h3>
+          <h3 className="text-lg font-display font-bold">FlowFit</h3>
           <p className="text-sm text-muted-foreground mt-1">
             Your productivity, beautifully tracked. Tasks, focus, habits, wellbeing, and an AI coach — all local-first, all yours.
           </p>

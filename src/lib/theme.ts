@@ -11,7 +11,7 @@ import { ALL_THEME_IDS, getThemeConfig, THEME_CONFIGS, type ThemeId } from "./th
 
 export type Theme = ThemeId;
 
-const KEY = "flowsphere-theme";
+const KEY = "flowfit-theme";
 
 export interface ThemeMeta {
   id: Theme;
@@ -131,7 +131,7 @@ export const isThemeUnlocked = (t: Theme, totalXp: number): boolean => {
   return levelFromXp(totalXp).level >= meta.unlockLevel;
 };
 
-const SEEN_KEY = "flowsphere-unlocked-themes-seen";
+const SEEN_KEY = "flowfit-unlocked-themes-seen";
 export const getSeenUnlocks = (): Theme[] => {
   if (typeof window === "undefined") return [];
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) || "[]"); } catch { return []; }

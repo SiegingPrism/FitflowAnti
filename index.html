@@ -20,7 +20,7 @@
       (function () {
         try {
           var ALL = ['light', 'dark', 'aurora', 'carbon', 'solar'];
-          var t = localStorage.getItem('flowsphere-theme');
+          var t = localStorage.getItem('flowfit-theme');
           if (!t || ALL.indexOf(t) === -1) t = 'dark';
           var html = document.documentElement;
           ALL.forEach(function (id) { html.classList.remove('theme-' + id); });
