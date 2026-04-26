@@ -704,8 +704,8 @@ async function hydrateFromCloud(
   set: (partial: Partial<AppState>) => void,
 ) {
   try {
-    // Safety timeout: don't let hydration block the app for more than 4 seconds
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Hydration Timeout")), 4000));
+    // Safety timeout: increased to 10s for production sync stability
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Hydration Timeout")), 10000));
 
     const [profileRes, tasksRes, habitsRes, checkinsRes, focusRes, healthRes, xpRes] =
       await Promise.race([
@@ -720,6 +720,8 @@ async function hydrateFromCloud(
         ]),
         timeoutPromise as Promise<any>
       ]);
+
+    console.log("[hydrate] Cloud data retrieved successfully.");
 
     const profile = profileRes.data;
 
@@ -819,19 +821,17 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
   try {
     const inserts: PromiseLike<unknown>[] = [];
 
-    // Profile
-    inserts.push(
-      supabase
-        .from("profiles")
-        .update({
-          display_name: local.userName,
-          primary_goal: local.primaryGoal ?? null,
-          daily_focus_target_min: local.dailyFocusTargetMin,
-          onboarded_at: local.onboardedAt ?? null,
-          total_xp: local.totalXP,
-        })
-        .eq("user_id", userId),
-    );
+    // Profile: use upsert to ensure it exists
+    await supabase
+      .from("profiles")
+      .upsert({
+        user_id: userId,
+        display_name: local.userName,
+        primary_goal: local.primaryGoal ?? null,
+        daily_focus_target_min: local.dailyFocusTargetMin,
+        onboarded_at: local.onboardedAt ?? null,
+        total_xp: local.totalXP,
+      }, { onConflict: "user_id" });
 
     // Map old (non-uuid) ids to fresh uuids
     const taskIdMap = new Map<string, string>();
@@ -919,9 +919,15 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
       inserts.push(supabase.from("xp_events").insert(rows));
     }
 
-    await Promise.all(inserts);
+    // Execute remaining inserts with individual error catching to prevent one table from blocking others
+    await Promise.all(inserts.map(p => p.then(res => {
+      const r = res as any;
+      if (r.error) console.error("[migration] Table insert failed:", r.error);
+    })));
+    
+    console.log("[migration] Local data successfully pushed to cloud.");
   } catch (err) {
-    console.error("[migration] failed:", err);
+    console.error("[migration] CRITICAL failure:", err);
   }
 }
 
