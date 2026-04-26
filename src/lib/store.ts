@@ -282,12 +282,18 @@ export const useAppStore = create<AppState>()(
                 console.log("[Task] RPC Success:", res);
               }
               
-              const earned = award(
-                { type: "task", priority: task.priority, category: task.category },
-                `Completed: ${task.title}`,
-                !!userId 
-              );
-              console.log(`[Task] Awarded ${earned} XP. Total now: ${get().totalXP}`);
+              const alreadyDone = res && res.message === 'already_done';
+
+              if (!alreadyDone) {
+                const earned = award(
+                  { type: "task", priority: task.priority, category: task.category },
+                  `Completed: ${task.title}`,
+                  !!userId 
+                );
+                console.log(`[Task] Awarded ${earned} XP. Total now: ${get().totalXP}`);
+              } else {
+                console.log("[Task] Already completed in cloud, skipping XP award.");
+              }
             } catch (e) {
               console.error("[Task] Final Error, rolling back optimistic state:", e);
               // Rollback optimistic update
@@ -407,6 +413,7 @@ export const useAppStore = create<AppState>()(
                   // Only award XP if this is the FIRST time today
                   if (!alreadyDone) {
                     award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
+                    console.log(`[Habit] XP Awarded for ${habit.name}`);
                   } else {
                     console.log("[Habit] Already done today, skipping XP award.");
                   }
