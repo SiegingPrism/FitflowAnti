@@ -64,10 +64,15 @@ export interface XPEvent {
   at: string;
 }
 
+export type TimeSlot = "morning" | "afternoon" | "evening";
+
 interface AppState {
   // Auth-bound state
   userId: string | null;
   hydrated: boolean; // true once we've loaded data for the current user
+
+  // Mood/Health tracking
+  claimedSlots: Record<string, TimeSlot[]>; // date -> slots[]
 
   // Data
   tasks: Task[];
@@ -135,6 +140,7 @@ const EMPTY_STATE = {
   focusSessions: [] as FocusSession[],
   healthLogs: [] as HealthLog[],
   xpHistory: [] as XPEvent[],
+  claimedSlots: {} as Record<string, TimeSlot[]>,
   totalXP: 0,
   userName: "Friend",
   dailyFocusTargetMin: 50,
@@ -230,8 +236,10 @@ export const useAppStore = create<AppState>()(
           }
         },
         toggleTask: async (id) => {
-          const task = get().tasks.find((t) => t.id === id);
+          const state = get();
+          const task = state.tasks.find((t) => t.id === id);
           if (!task) return;
+
           const willComplete = !task.completed;
           const completedAt = willComplete ? new Date().toISOString() : undefined;
           
@@ -245,35 +253,28 @@ export const useAppStore = create<AppState>()(
           const userId = get().userId;
 
           if (willComplete) {
-            if (userId) {
-              try {
+            try {
+              if (userId) {
                 const { data, error } = await supabase.rpc('complete_task', { p_task_id: id });
                 const res = data as { success?: boolean; message?: string } | null;
                 
                 if (error || (res && res.success === false)) {
-                  // Rollback optimistic update
-                  set((s) => ({
-                    tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
-                  }));
-                  return;
+                   console.warn("[Task] Sync failed, rolling back. Error:", error || res?.message);
+                   throw new Error("Sync failed");
                 }
-                award(
-                  { type: "task", priority: task.priority, category: task.category },
-                  `Completed: ${task.title}`,
-                  true // skipCloudSync
-                );
-              } catch (e) {
-                // Rollback on network error
-                set((s) => ({
-                  tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
-                }));
               }
-            } else {
-              // Offline mode
+              
+              // Only award XP IF the task is actually being completed (not toggled off)
               award(
                 { type: "task", priority: task.priority, category: task.category },
-                `Completed: ${task.title}`
+                `Completed: ${task.title}`,
+                !!userId // skip local cloud sync if we already hit the RPC
               );
+            } catch (e) {
+              // Rollback optimistic update
+              set((s) => ({
+                tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
+              }));
             }
           } else {
             // Un-completing
@@ -464,20 +465,44 @@ export const useAppStore = create<AppState>()(
         },
         setMood: (mood) => {
           const t = today();
+          const hour = new Date().getHours();
           const state = get();
           
-          // XP Limit Logic: 3 times a day OR after a focus session
-          const xpToday = state.xpHistory.filter(e => e.at.startsWith(t) && e.reason.includes("Mood logged")).length;
-          const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(t)).length;
-          const allowedLimit = 3 + focusToday;
+          // Determine current slot
+          let slot: TimeSlot = "morning";
+          if (hour >= 12 && hour < 18) slot = "afternoon";
+          if (hour >= 18 || hour < 5) slot = "evening";
 
-          get().logHealth({ mood });
+          const daySlots = state.claimedSlots[t] || [];
           
-          if (xpToday < allowedLimit) {
-            award({ type: "health", kind: "mood" }, `Mood logged: ${mood}/5`);
-          } else {
-            console.log("[XP] Mood XP limit reached for today (max 3 + focus sessions)");
+          // Check if slot is already claimed
+          if (daySlots.includes(slot)) {
+            // If slot is claimed, we can only claim a mood if we have a "pending focus session bonus"
+            // We calculate this by checking: count(focus today) > count(bonus mood events today)
+            const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(t)).length;
+            const moodEventsToday = state.xpHistory.filter(e => e.at.startsWith(t) && e.reason.includes("Mood logged")).length;
+            
+            // We allow 3 base slots (M/A/E). If total mood events >= 3, it means we must use a focus bonus.
+            const baseSlotsClaimed = daySlots.length;
+            const extraNeeded = moodEventsToday + 1 - 3; 
+
+            if (extraNeeded > 0 && moodEventsToday >= focusToday + 3) {
+              console.log("[XP] Mood limit reached. Complete more focus sessions for extra slots.");
+              get().logHealth({ mood }); // Still log it
+              return;
+            }
           }
+
+          // Grant XP and mark slot as claimed
+          get().logHealth({ mood });
+          award({ type: "health", kind: "mood" }, `Mood logged (${slot}): ${mood}/5`);
+          
+          set((s) => ({
+            claimedSlots: {
+              ...s.claimedSlots,
+              [t]: Array.from(new Set([...(s.claimedSlots[t] || []), slot]))
+            }
+          }));
         },
 
         awardFor: award,
@@ -615,6 +640,7 @@ export const useAppStore = create<AppState>()(
         onboardedAt: s.onboardedAt,
         primaryGoal: s.primaryGoal,
         dailyFocusTargetMin: s.dailyFocusTargetMin,
+        claimedSlots: s.claimedSlots,
       }),
     },
   ),

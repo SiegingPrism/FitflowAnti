@@ -4,11 +4,11 @@ import { Droplets, Footprints, Activity, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 const moods = [
-  { v: 1 as const, e: "😞" },
-  { v: 2 as const, e: "😕" },
-  { v: 3 as const, e: "😐" },
-  { v: 4 as const, e: "🙂" },
-  { v: 5 as const, e: "😄" },
+  { v: 1 as const, e: "😞", label: "Sad" },
+  { v: 2 as const, e: "😕", label: "Neutral" },
+  { v: 3 as const, e: "😐", label: "Okay" },
+  { v: 4 as const, e: "🙂", label: "Good" },
+  { v: 5 as const, e: "😄", label: "Great" },
 ];
 
 export const QuickHealth = () => {
@@ -19,10 +19,16 @@ export const QuickHealth = () => {
   const waterPct = Math.min(100, (log.waterMl / 2500) * 100);
   const stepsPct = Math.min(100, (log.steps / 8000) * 100);
 
-  // XP Limit calculation
-  const xpToday = state.xpHistory.filter(e => e.at.startsWith(today) && e.reason.includes("Mood logged")).length;
+  const hour = new Date().getHours();
+  let currentSlot: "morning" | "afternoon" | "evening" = "morning";
+  if (hour >= 12 && hour < 18) currentSlot = "afternoon";
+  if (hour >= 18 || hour < 5) currentSlot = "evening";
+
+  const daySlots = state.claimedSlots[today] || [];
   const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(today)).length;
-  const canAwardMood = xpToday < (3 + focusToday);
+  const moodEventsToday = state.xpHistory.filter(e => e.at.startsWith(today) && e.reason.includes("Mood logged")).length;
+  
+  const canAwardMood = !daySlots.includes(currentSlot) || (focusToday > (moodEventsToday - daySlots.length));
 
   return (
     <motion.section
@@ -87,27 +93,47 @@ export const QuickHealth = () => {
       </div>
 
       <div className="mt-5 pt-4 border-t border-border/40">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">How are you feeling?</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            {currentSlot.charAt(0).toUpperCase() + currentSlot.slice(1)} Ritual
+          </p>
+          <div className="flex gap-1">
+            {["morning", "afternoon", "evening"].map((s) => (
+              <div 
+                key={s} 
+                className={`w-2 h-2 rounded-full ${daySlots.includes(s as any) ? "bg-success shadow-glow" : "bg-muted"}`}
+                title={s}
+              />
+            ))}
+          </div>
+        </div>
+        
         <div className="flex items-center justify-between gap-1">
           {moods.map((m) => {
             const isSelected = log.mood === m.v;
+            const isClaimed = daySlots.includes(currentSlot);
+            const hasBonus = focusToday > (moodEventsToday - daySlots.length);
+            const canClaim = !isClaimed || hasBonus;
+
             return (
               <button
                 key={m.v}
-                onClick={() => {
-                  if (canAwardMood) {
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (canClaim) {
                     setMood(m.v);
+                    toast.success("Mood logged!", { icon: "✨" });
                   } else {
-                    toast.info("Mood XP limit reached! Complete focus sessions to earn more bonus XP.", {
-                      description: "You can log mood 3x daily + 1 extra for each focus session.",
-                      icon: "⏳"
+                    toast.info(`You've already claimed your ${currentSlot} XP!`, {
+                      description: "Complete a focus session to earn a bonus wellbeing slot.",
+                      icon: "🔒"
                     });
-                    setMood(m.v); // Still log the mood, just won't give XP (handled in store)
                   }
                 }}
-                className={`flex-1 py-2 rounded-xl text-2xl transition-bounce hover:scale-110 ${
-                  isSelected ? "bg-primary/15 scale-110 shadow-glow" : "hover:bg-muted"
-                }`}
+                disabled={isSelected && isClaimed}
+                className={`flex-1 py-3 rounded-xl text-2xl transition-bounce hover:scale-110 ${
+                  isSelected ? "bg-primary/20 scale-110 shadow-glow ring-2 ring-primary/20" : "hover:bg-muted"
+                } ${!canClaim && !isSelected ? "grayscale opacity-40 cursor-not-allowed" : ""}`}
                 aria-label={`Mood ${m.v}`}
               >
                 {m.e}
@@ -115,6 +141,11 @@ export const QuickHealth = () => {
             );
           })}
         </div>
+        {!canAwardMood && (
+          <p className="text-[10px] text-muted-foreground mt-3 text-center italic">
+            Ritual complete. Earn bonus slots by finishing focus sessions.
+          </p>
+        )}
       </div>
     </motion.section>
   );
