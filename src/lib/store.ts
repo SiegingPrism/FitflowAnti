@@ -627,20 +627,27 @@ async function hydrateFromCloud(
   set: (partial: Partial<AppState>) => void,
 ) {
   try {
+    // Safety timeout: don't let hydration block the app for more than 4 seconds
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Hydration Timeout")), 4000));
+
     const [profileRes, tasksRes, habitsRes, checkinsRes, focusRes, healthRes, xpRes] =
-      await Promise.all([
-        supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-        supabase.from("tasks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
-        supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null),
-        supabase.from("habit_checkins").select("*").eq("user_id", userId),
-        supabase.from("focus_sessions").select("*").eq("user_id", userId).order("completed_at", { ascending: false }).limit(500),
-        supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
-        supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
+      await Promise.race([
+        Promise.all([
+          supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+          supabase.from("tasks").select("*").eq("user_id", userId).order("created_at", { ascending: false }),
+          supabase.from("habits").select("*").eq("user_id", userId).is("archived_at", null),
+          supabase.from("habit_checkins").select("*").eq("user_id", userId),
+          supabase.from("focus_sessions").select("*").eq("user_id", userId).order("completed_at", { ascending: false }).limit(500),
+          supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
+          supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
+        ]),
+        timeoutPromise as Promise<any>
       ]);
 
     const profile = profileRes.data;
 
     // First-login migration: if cloud is empty AND localStorage has data, push it up.
+    // We only do this if it's a fresh user (no tasks, habits, or XP in cloud).
     const cloudEmpty =
       (tasksRes.data?.length ?? 0) === 0 &&
       (habitsRes.data?.length ?? 0) === 0 &&
@@ -655,9 +662,11 @@ async function hydrateFromCloud(
       local.onboardedAt;
 
     if (cloudEmpty && localHasData) {
+      console.log("[hydrate] cloud empty, migrating local data...");
       await migrateLocalToCloud(userId, local);
-      // Re-fetch after migration
-      await hydrateFromCloud(userId, get, set);
+      // IMPORTANT: Instead of recursing (which can loop), we just mark as hydrated
+      // with the local data we already have. The cloud is now catching up.
+      set({ hydrated: true });
       return;
     }
 
