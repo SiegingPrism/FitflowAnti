@@ -73,7 +73,7 @@ const ProtectedRoutes = () => {
     } else {
       bindUser(null);
     }
-  }, [session?.user?.id, loading, bindUser]);
+  }, [session?.user, loading, bindUser]);
 
   if (loading) return <FullScreenLoader />;
   if (!session) return <Navigate to="/auth" replace state={{ from: location }} />;

@@ -101,7 +101,7 @@ export const QuickHealth = () => {
             {["morning", "afternoon", "evening"].map((s) => (
               <div 
                 key={s} 
-                className={`w-2 h-2 rounded-full ${daySlots.includes(s as any) ? "bg-success shadow-glow" : "bg-muted"}`}
+                className={`w-2 h-2 rounded-full ${daySlots.includes(s as "morning" | "afternoon" | "evening") ? "bg-success shadow-glow" : "bg-muted"}`}
                 title={s}
               />
             ))}
