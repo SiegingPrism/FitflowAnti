@@ -7,8 +7,9 @@
  * a Recovery Mission (3 small tasks worth 2x XP).
  */
 
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import type { HealthLog, Task, XPEvent } from "./store";
+import { getPastDays } from "./utils";
 
 export interface BurnoutInputs {
   healthLogs: HealthLog[];
@@ -33,11 +34,9 @@ const STREAK_STRAIN_DAYS = 14; // unbroken streaks past this start to strain
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 
-const last7Dates = () =>
-  Array.from({ length: 7 }, (_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
+const last7Dates = () => getPastDays(7);
 
-const previous7Dates = () =>
-  Array.from({ length: 7 }, (_, i) => format(subDays(new Date(), i + 7), "yyyy-MM-dd"));
+const previous7Dates = () => getPastDays(7, 7);
 
 export function computeBurnout({ healthLogs, tasks, xpHistory }: BurnoutInputs): BurnoutResult {
   const recent = last7Dates();
@@ -106,7 +105,7 @@ function computeXpStreak(history: XPEvent[]): number {
     const expected = format(cursor, "yyyy-MM-dd");
     if (d === expected) {
       streak += 1;
-      cursor = subDays(cursor, 1);
+      cursor.setDate(cursor.getDate() - 1);
     } else if (d < expected) {
       break;
     }

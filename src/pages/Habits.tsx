@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Flame, Trash2, Check } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
@@ -9,7 +9,7 @@ import { useAppStore, todayKey, type Habit } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+import { cn, getPastDays } from "@/lib/utils";
 import { toast } from "sonner";
 
 const computeStreak = (history: string[]) => {
@@ -30,7 +30,7 @@ const HabitsPage = () => {
   const today = todayKey();
 
   // 30-day grid
-  const days = [...Array(30)].map((_, i) => format(subDays(new Date(), 29 - i), "yyyy-MM-dd"));
+  const days = getPastDays(30).reverse();
 
   return (
     <AppShell>
