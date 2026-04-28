@@ -129,7 +129,10 @@ interface AppState {
   grantDebugXp: (amount: number, reason?: string) => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Ensure today uses local time to match UI display
+import { format } from "date-fns";
+const today = () => format(new Date(), "yyyy-MM-dd");
+
 const uid = () => crypto.randomUUID();
 
 const TASK_BASE: Record<Priority, number> = { low: 5, medium: 10, high: 20, urgent: 35 };

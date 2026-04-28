@@ -206,7 +206,7 @@ const NewTaskDialog = ({ onCreate }: { onCreate: (t: { title: string; priority: 
             onClick={() => {
               onCreate({
                 title: title.trim(), priority, category, durationMin,
-                dueDate: dueDate ? dueDate.toISOString().slice(0, 10) : undefined,
+                dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
                 notes: notes.trim() || undefined,
               });
               setOpen(false); reset();
