@@ -6,7 +6,7 @@
  * imports from here so the math is unit-testable in isolation.
  */
 
-export type Branch = "focus" | "health" | "learning" | "craft" | "fitness" | "study" | "mental_health" | "work" | "other";
+export type Branch = "focus" | "health" | "learning" | "craft";
 export type Priority = "low" | "medium" | "high" | "urgent";
 export type TaskCategory = "work" | "personal" | "health" | "learning" | "fitness" | "study" | "mental_health" | "other";
 
@@ -170,22 +170,22 @@ const HEALTH_EMOJIS = new Set(["💧", "🏋️", "🏃", "🧘", "🍎", "🥗"
 export function branchOf(source: ActionSource): Branch {
   switch (source.type) {
     case "task": {
-      if (source.category === "work") return "work";
+      if (source.category === "work") return "focus";
       if (source.category === "health") return "health";
       if (source.category === "learning") return "learning";
-      if (source.category === "study") return "study";
-      if (source.category === "fitness") return "fitness";
-      if (source.category === "mental_health") return "mental_health";
+      if (source.category === "study") return "learning";
+      if (source.category === "fitness") return "health";
+      if (source.category === "mental_health") return "health";
       return "craft"; // personal + other
     }
     case "habit": {
       if (source.emoji && HEALTH_EMOJIS.has(source.emoji)) return "health";
       if (source.category === "learning") return "learning";
       if (source.category === "health") return "health";
-      if (source.category === "work") return "work";
-      if (source.category === "study") return "study";
-      if (source.category === "fitness") return "fitness";
-      if (source.category === "mental_health") return "mental_health";
+      if (source.category === "work") return "focus";
+      if (source.category === "study") return "learning";
+      if (source.category === "fitness") return "health";
+      if (source.category === "mental_health") return "health";
       return "craft";
     }
     case "focus":

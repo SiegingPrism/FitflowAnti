@@ -129,7 +129,7 @@ const InsightsPage = () => {
   );
 };
 
-const StatCard = ({ label, value, icon: Icon, tone, suffix = "" }: { label: string; value: number; icon: any; tone: "primary" | "success" | "accent"; suffix?: string }) => {
+const StatCard = ({ label, value, icon: Icon, tone, suffix = "" }: { label: string; value: number; icon: React.ElementType; tone: "primary" | "success" | "accent"; suffix?: string }) => {
   const toneBg = { primary: "bg-primary/15 text-primary", success: "bg-success/15 text-success", accent: "bg-accent/15 text-accent" }[tone];
   return (
     <FadeIn className="glass-card">

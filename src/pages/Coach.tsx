@@ -134,8 +134,8 @@ const CoachPage = () => {
       setData(result);
       setAiPowered(true);
       toast.success("Coach updated with fresh AI insights");
-    } catch (e: any) {
-      const msg = e?.message ?? "Unknown error";
+    } catch (e: unknown) {
+      const msg = (e as { message?: string })?.message ?? "Unknown error";
       if (msg.includes("Rate limit")) toast.error("Rate limited — try again in a moment.");
       else if (msg.includes("credits")) toast.error("AI credits exhausted. Add funds in workspace settings.");
       else toast.error("AI unavailable, showing local insights.");
@@ -154,8 +154,8 @@ const CoachPage = () => {
       if (result?.error) throw new Error(result.error);
       setPlan(result);
       toast.success(`Plan ready: ${result.theme}`);
-    } catch (e: any) {
-      const msg = e?.message ?? "Unknown error";
+    } catch (e: unknown) {
+      const msg = (e as { message?: string })?.message ?? "Unknown error";
       if (msg.includes("Rate limit")) toast.error("Rate limited — try again in a moment.");
       else if (msg.includes("credits")) toast.error("AI credits exhausted.");
       else toast.error("Couldn't generate plan. Try again.");

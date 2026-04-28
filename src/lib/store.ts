@@ -387,7 +387,7 @@ export const useAppStore = create<AppState>()(
                   
                   if (error || (res && res.success === false)) {
                      // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
-                     const isMissing = error && (error as any).code === '23503';
+                     const isMissing = error && (error as { code?: string }).code === '23503';
                      if (isMissing) {
                         console.log("[Habit] Habit missing from cloud, self-healing...");
                         await supabase.from("habits").insert({
@@ -718,7 +718,7 @@ async function hydrateFromCloud(
           supabase.from("health_logs").select("*").eq("user_id", userId).order("date", { ascending: false }).limit(180),
           supabase.from("xp_events").select("*").eq("user_id", userId).order("at", { ascending: false }).limit(200),
         ]),
-        timeoutPromise as Promise<any>
+        timeoutPromise as Promise<never>
       ]);
 
     console.log("[hydrate] Cloud data retrieved successfully.");
@@ -921,7 +921,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
 
     // Execute remaining inserts with individual error catching to prevent one table from blocking others
     await Promise.all(inserts.map(p => p.then(res => {
-      const r = res as any;
+      const r = res as { error?: Error };
       if (r.error) console.error("[migration] Table insert failed:", r.error);
     })));
     
