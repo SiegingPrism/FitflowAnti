@@ -359,87 +359,71 @@ export const useAppStore = create<AppState>()(
           const has = habit.history.includes(t);
           const userId = get().userId;
 
-          if (!has) {
-            // Checking IN - Optimistic update
-            set((s) => ({
-              habits: s.habits.map((h) =>
-                h.id === id ? { ...h, history: [...h.history, t] } : h,
-              ),
-            }));
+          if (has) return; // Habit is locked for the day once completed
 
-            if (userId) {
-               try {
-                  const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                  const res = data as { success?: boolean; message?: string } | null;
-                  
-                  // If error is 'Already checked in', we don't need to roll back, 
-                  // as the local state and server state are now in sync.
-                  const alreadyDone = res && res.message === 'already_done';
-                  
-                  if (error || (res && res.success === false)) {
-                     // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
-                     const isMissing = error && (error as { code?: string }).code === '23503';
-                     if (isMissing) {
-                        console.log("[Habit] Habit missing from cloud, self-healing...");
-                        await supabase.from("habits").insert({
-                          id,
-                          user_id: userId,
-                          name: habit.name,
-                          emoji: habit.emoji,
-                          color: habit.color,
-                          target_per_week: habit.targetPerWeek,
-                          category: habit.category ?? null,
-                        });
-                        // Retry check-in
-                        const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                        if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
-                     }
+          // Checking IN - Optimistic update
+          set((s) => ({
+            habits: s.habits.map((h) =>
+              h.id === id ? { ...h, history: [...h.history, t] } : h,
+            ),
+          }));
 
-                     console.error("[habit checkin] failed:", error || res?.message);
-                     // Rollback optimistic update
-                     set((s) => ({
-                       habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
-                     }));
-                     return;
-                  }
-                  
-                  // Only award XP if this is the FIRST time today
-                  if (!alreadyDone) {
-                    award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
-                    console.log(`[Habit] XP Awarded for ${habit.name}`);
-                  } else {
-                    console.log("[Habit] Already done today, skipping XP award.");
-                  }
-               } catch (e) {
-                 console.error("[habit checkin] network error:", e);
-                 // Rollback on network error
-                 set((s) => ({
-                   habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
-                 }));
-               }
-            } else {
-               // Offline mode
-               award(
-                 { type: "habit", emoji: habit.emoji, category: habit.category },
-                 `Habit: ${habit.name}`
-               );
-            }
+          if (userId) {
+             try {
+                const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+                const res = data as { success?: boolean; message?: string } | null;
+
+                // If error is 'Already checked in', we don't need to roll back,
+                // as the local state and server state are now in sync.
+                const alreadyDone = res && res.message === 'already_done';
+
+                if (error || (res && res.success === false)) {
+                   // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
+                   const isMissing = error && (error as { code?: string }).code === '23503';
+                   if (isMissing) {
+                      console.log("[Habit] Habit missing from cloud, self-healing...");
+                      await supabase.from("habits").insert({
+                        id,
+                        user_id: userId,
+                        name: habit.name,
+                        emoji: habit.emoji,
+                        color: habit.color,
+                        target_per_week: habit.targetPerWeek,
+                        category: habit.category ?? null,
+                      });
+                      // Retry check-in
+                      const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+                      if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
+                   }
+
+                   console.error("[habit checkin] failed:", error || res?.message);
+                   // Rollback optimistic update
+                   set((s) => ({
+                     habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
+                   }));
+                   return;
+                }
+
+                // Only award XP if this is the FIRST time today
+                if (!alreadyDone) {
+                  award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
+                  console.log(`[Habit] XP Awarded for ${habit.name}`);
+                } else {
+                  console.log("[Habit] Already done today, skipping XP award.");
+                }
+             } catch (e) {
+               console.error("[habit checkin] network error:", e);
+               // Rollback on network error
+               set((s) => ({
+                 habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
+               }));
+             }
           } else {
-            // Un-checking (deleting check-in)
-            set((s) => ({
-              habits: s.habits.map((h) =>
-                h.id === id ? { ...h, history: h.history.filter((d) => d !== t) } : h,
-              ),
-            }));
-            if (userId) {
-              safe(
-                supabase
-                  .from("habit_checkins")
-                  .delete()
-                  .eq("habit_id", id)
-                  .eq("date", t),
-              );
-            }
+             // Offline mode
+             award(
+               { type: "habit", emoji: habit.emoji, category: habit.category },
+               `Habit: ${habit.name}`
+             );
           }
         },
         removeHabit: (id) => {

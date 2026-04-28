@@ -12,7 +12,21 @@ export const HabitsStrip = () => {
     if (history.length === 0) return 0;
     const set = new Set(history);
     let streak = 0;
+
+    // We start looking from today
     const cursor = new Date();
+    const todayStr = cursor.toISOString().slice(0, 10);
+
+    // If today is not in the set, check if yesterday is.
+    // If neither is, the streak is 0.
+    if (!set.has(todayStr)) {
+      cursor.setDate(cursor.getDate() - 1);
+      const yesterdayStr = cursor.toISOString().slice(0, 10);
+      if (!set.has(yesterdayStr)) {
+        return 0;
+      }
+    }
+
     while (true) {
       const k = cursor.toISOString().slice(0, 10);
       if (set.has(k)) {
