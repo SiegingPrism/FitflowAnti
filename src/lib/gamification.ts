@@ -170,7 +170,7 @@ const HEALTH_EMOJIS = new Set(["💧", "🏋️", "🏃", "🧘", "🍎", "🥗"
 export function branchOf(source: ActionSource): Branch {
   switch (source.type) {
     case "task": {
-      if (source.category === "work") return "work";
+      if (source.category === "work") return "focus";
       if (source.category === "health") return "health";
       if (source.category === "learning") return "learning";
       if (source.category === "study") return "study";

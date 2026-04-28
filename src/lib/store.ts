@@ -236,7 +236,6 @@ export const useAppStore = create<AppState>()(
           }
         },
         toggleTask: async (id) => {
-          console.log(`[Task] Toggling task: ${id}`);
           const state = get();
           const task = state.tasks.find((t) => t.id === id);
           if (!task) {
@@ -246,8 +245,6 @@ export const useAppStore = create<AppState>()(
 
           const willComplete = !task.completed;
           const completedAt = willComplete ? new Date().toISOString() : undefined;
-          
-          console.log(`[Task] Status will be: ${willComplete ? 'Completed' : 'Open'}`);
 
           // Optimistic UI update
           set((s) => ({
@@ -262,7 +259,6 @@ export const useAppStore = create<AppState>()(
             try {
               let res: { success?: boolean; message?: string } | null = null;
               if (userId) {
-                console.log(`[Task] Synced user detected (${userId}). hitting complete_task RPC...`);
                 const { data, error } = await supabase.rpc('complete_task', { 
                   p_task_id: id,
                   p_title: task.title,
@@ -280,21 +276,17 @@ export const useAppStore = create<AppState>()(
                    console.warn("[Task] RPC Success: false. Message:", res.message);
                    throw new Error(res.message);
                 }
-                console.log("[Task] RPC Success:", res);
               }
               
               // res is only defined if we hit the cloud. If local, it's never 'alreadyDone'.
               const alreadyDone = userId ? (res && res.message === 'already_done') : false;
 
               if (!alreadyDone) {
-                const earned = award(
+                award(
                   { type: "task", priority: task.priority, category: task.category },
                   `Completed: ${task.title}`,
                   !!userId 
                 );
-                console.log(`[Task] Awarded ${earned} XP. Total now: ${get().totalXP}`);
-              } else {
-                console.log("[Task] Already completed in cloud, skipping XP award.");
               }
             } catch (e) {
               console.error("[Task] Final Error, rolling back optimistic state:", e);
@@ -306,7 +298,6 @@ export const useAppStore = create<AppState>()(
           } else {
             // Un-completing
             if (userId) {
-              console.log("[Task] Un-completing task on cloud...");
               safe(
                 supabase
                   .from("tasks")
