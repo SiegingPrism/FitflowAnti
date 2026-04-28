@@ -37,7 +37,7 @@ const ChartContainer = React.forwardRef<
   }
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId();
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
+  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`.replace(/[^a-zA-Z0-9_-]/g, "");
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -65,22 +65,28 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null;
   }
 
+  const safeId = id.replace(/[^a-zA-Z0-9_-]/g, "");
+
   return (
     <style
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
-          )
+          .map(([theme, prefix]) => {
+            const cssRules = colorConfig
+              .map(([key, itemConfig]) => {
+                const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+                if (!color) return null;
+
+                const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, "");
+                const safeColor = color.replace(/[^\w#(),. \-%]/g, "");
+
+                return `  --color-${safeKey}: ${safeColor};`;
+              })
+              .filter(Boolean)
+              .join("\n");
+
+            return `\n${prefix} [data-chart=${safeId}] {\n${cssRules}\n}\n`;
+          })
           .join("\n"),
       }}
     />
