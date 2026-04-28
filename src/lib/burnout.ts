@@ -100,14 +100,25 @@ function computeXpStreak(history: XPEvent[]): number {
   if (history.length === 0) return 0;
   const days = Array.from(new Set(history.map((e) => e.at.slice(0, 10)))).sort().reverse();
   let streak = 0;
-  let cursor = new Date();
+  const cursor = new Date();
+
+  // Allow grace if the user hasn't earned XP today yet, but did yesterday
+  const expectedToday = format(cursor, "yyyy-MM-dd");
+  if (!days.includes(expectedToday)) {
+    cursor.setDate(cursor.getDate() - 1);
+    const expectedYesterday = format(cursor, "yyyy-MM-dd");
+    if (!days.includes(expectedYesterday)) {
+      return 0; // The streak is broken
+    }
+  }
+
   for (const d of days) {
     const expected = format(cursor, "yyyy-MM-dd");
     if (d === expected) {
       streak += 1;
       cursor.setDate(cursor.getDate() - 1);
     } else if (d < expected) {
-      break;
+      break; // Gap found, end of current streak
     }
   }
   return streak;
