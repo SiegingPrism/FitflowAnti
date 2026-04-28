@@ -17,8 +17,8 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, subDays } from "date-fns";
-import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }
@@ -31,7 +31,7 @@ interface WeeklyPlan { theme: string; rationale: string; days: PlanDay[]; }
 
 const buildSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
   const todayKey = format(new Date(), "yyyy-MM-dd");
-  const last7 = [...Array(7)].map((_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
+  const last7 = getPastDays(7);
 
   const completionByHour = new Array(24).fill(0);
   state.tasks.filter((t) => t.completedAt).forEach((t) => completionByHour[new Date(t.completedAt!).getHours()]++);
@@ -56,7 +56,7 @@ const buildSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
 };
 
 const buildPlanSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
-  const last14 = [...Array(14)].map((_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
+  const last14 = getPastDays(14);
   const completionByHour = new Array(24).fill(0);
   state.tasks.filter((t) => t.completedAt).forEach((t) => completionByHour[new Date(t.completedAt!).getHours()]++);
   const peakHours = completionByHour

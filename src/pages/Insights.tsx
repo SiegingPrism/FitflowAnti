@@ -1,11 +1,12 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { format, subDays } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
 import { TrendingUp, Activity, CheckCircle2 } from "lucide-react";
+import { getPastDays } from "@/lib/utils";
 
 const InsightsPage = () => {
   const { tasks, focusSessions, habits } = useAppStore();
@@ -18,9 +19,8 @@ const InsightsPage = () => {
 
   const totalTasks = Math.max(1, tasks.length);
 
-  const last7 = useMemo(() => [...Array(7)].map((_, i) => {
-    const d = subDays(new Date(), 6 - i);
-    const k = format(d, "yyyy-MM-dd");
+  const last7 = useMemo(() => getPastDays(7).reverse().map((k) => {
+    const d = parseISO(k);
     const completed = tasks.filter((t) => t.completedAt?.startsWith(k)).length;
     const focusMin = focusSessions.filter((s) => s.completedAt.startsWith(k)).reduce((a, s) => a + s.durationMin, 0);
     return { date: d, label: format(d, "EEE"), completed, focusMin };
@@ -32,7 +32,7 @@ const InsightsPage = () => {
   const totalFocusMin = focusSessions.reduce((a, s) => a + s.durationMin, 0);
   const avgConsistency = habits.length === 0 ? 0 : Math.round(habits.reduce((a, h) => {
     const set = new Set(h.history);
-    const last7days = [...Array(7)].map((_, i) => format(subDays(new Date(), i), "yyyy-MM-dd"));
+    const last7days = getPastDays(7);
     return a + (last7days.filter((d) => set.has(d)).length / 7) * 100;
   }, 0) / habits.length);
 
