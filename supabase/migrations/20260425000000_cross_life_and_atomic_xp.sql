@@ -40,6 +40,27 @@ DROP TRIGGER IF EXISTS daily_stats_updated_at ON public.daily_stats;
 CREATE TRIGGER daily_stats_updated_at BEFORE UPDATE ON public.daily_stats
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+-- XP System Core Logic
+-- Handles concurrent updates safely to avoid lost updates during rapid check-ins
+CREATE OR REPLACE FUNCTION public.atomic_add_xp(p_user_id UUID, p_amount INT)
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_new_total INT;
+BEGIN
+    -- This entirely prevents the "spam click XP" bug by using row-level locking (FOR UPDATE)
+    UPDATE public.profiles
+    SET total_xp = total_xp + p_amount
+    WHERE user_id = p_user_id
+    RETURNING total_xp INTO v_new_total;
+
+    RETURN v_new_total;
+END;
+$$;
+
 -- 3. Atomic Task Completion RPC
 -- This entirely prevents the "spam click XP" bug by using row-level locking (FOR UPDATE)
 CREATE OR REPLACE FUNCTION public.complete_task(
@@ -92,10 +113,8 @@ BEGIN
   INSERT INTO public.xp_events (user_id, amount, reason, branch, source_type)
   VALUES (v_user_id, v_xp_amount, 'Completed task', COALESCE(v_category, 'other'), 'task');
 
-  -- Update Total XP in user profile
-  UPDATE public.profiles
-  SET total_xp = total_xp + v_xp_amount
-  WHERE user_id = v_user_id;
+  -- Update Total XP in user profile securely using the new atomic function
+  PERFORM public.atomic_add_xp(v_user_id, v_xp_amount);
   
   -- Update Daily Stats Atomically
   v_current_date := CURRENT_DATE;
@@ -157,10 +176,8 @@ BEGIN
   INSERT INTO public.xp_events (user_id, amount, reason, branch, source_type)
   VALUES (v_user_id, v_xp_amount, 'Completed habit', COALESCE(v_category, 'other'), 'habit');
 
-  -- Update Total XP in profile
-  UPDATE public.profiles
-  SET total_xp = total_xp + v_xp_amount
-  WHERE user_id = v_user_id;
+  -- Update Total XP in profile securely using the new atomic function
+  PERFORM public.atomic_add_xp(v_user_id, v_xp_amount);
 
   -- Update Daily Stats Atomically
   INSERT INTO public.daily_stats (user_id, date, habits_completed, xp_earned)
