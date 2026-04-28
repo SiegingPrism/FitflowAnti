@@ -30,8 +30,9 @@ const TasksPage = () => {
   const [filterCategory, setFilterCategory] = useState<TaskCategory | "all">("all");
 
   const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase();
     return tasks.filter((t) => {
-      if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (searchLower && !t.title.toLowerCase().includes(searchLower)) return false;
       if (filterPriority !== "all" && t.priority !== filterPriority) return false;
       if (filterCategory !== "all" && t.category !== filterCategory) return false;
       return true;
