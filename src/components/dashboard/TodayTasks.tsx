@@ -73,7 +73,6 @@ const TaskRow = ({ task, onToggle }: { task: Task; onToggle: () => void }) => (
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log(`[UI] Task clicked in TodayTasks: ${task.id}`);
         onToggle();
       }}
       className={cn(
