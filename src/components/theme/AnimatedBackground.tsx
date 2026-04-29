@@ -342,33 +342,31 @@ function paintDaylight(ctx: CanvasRenderingContext2D, w: number, h: number, t: n
   }
 }
 
-// Oceanic — smooth underwater light rays and deep bioluminescence
+// Oceanic — Deep bioluminescent water rays and caustics
 function paintOceanic(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
   
-  // Gentle underwater light rays
-  ctx.globalCompositeOperation = "screen";
-  for (let i = 0; i < 5; i++) {
-    const xOffset = w * (0.2 * i) + Math.sin(t * 0.2 + i) * (w * 0.1);
+  // Caustic light rays from top
+  for (let i = 0; i < 4; i++) {
+    const xOffset = Math.sin(t * 0.5 + i * 2) * w * 0.2;
     const grad = ctx.createLinearGradient(xOffset, 0, xOffset + w * 0.3, h);
-    grad.addColorStop(0, `hsla(${ph + 10}, 90%, 60%, 0.1)`);
+    grad.addColorStop(0, `hsla(${ph}, 100%, 50%, 0.15)`);
     grad.addColorStop(1, "hsla(0,0%,0%,0)");
     
     ctx.beginPath();
-    ctx.moveTo(xOffset - 100, -50);
-    ctx.lineTo(xOffset + 200, -50);
-    ctx.lineTo(xOffset + w * 0.5, h + 50);
-    ctx.lineTo(xOffset - w * 0.2, h + 50);
+    ctx.moveTo(xOffset, -100);
+    ctx.lineTo(xOffset + w * 0.4, -100);
+    ctx.lineTo(xOffset + w * 0.8, h + 100);
+    ctx.lineTo(xOffset - w * 0.2, h + 100);
     ctx.fillStyle = grad;
     ctx.fill();
   }
-  ctx.globalCompositeOperation = "source-over";
 
-  // Deep abyssal glow
-  const cx = w * 0.5;
-  const cy = h * 0.9;
-  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.6);
-  orb.addColorStop(0, `hsla(${ph - 15}, 100%, 45%, 0.15)`);
+  // Deep glowing orbs
+  const cx = w * (0.8 + Math.cos(t * 0.2) * 0.1);
+  const cy = h * (0.8 + Math.sin(t * 0.15) * 0.1);
+  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.4);
+  orb.addColorStop(0, `hsla(${ph - 20}, 100%, 40%, 0.25)`);
   orb.addColorStop(1, "hsla(0,0%,0%,0)");
   ctx.fillStyle = orb;
   ctx.fillRect(0, 0, w, h);
