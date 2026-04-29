@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -137,3 +137,88 @@
   .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 3px; }
   .text-balance { text-wrap: balance; }
 }
+
+/* 
+ * ────────────────────────────────────────────────────────────────────
+ * Custom Theme Overrides 
+ * To match the exact image designs
+ * ────────────────────────────────────────────────────────────────────
+ */
+
+/* Bronze Forge */
+.theme-bronze body {
+  background-image: radial-gradient(circle at top left, hsl(24 20% 15%) 0%, transparent 40%),
+                    radial-gradient(circle at bottom right, hsl(20 40% 10%) 0%, transparent 50%);
+  background-color: hsl(24 15% 10%);
+}
+.theme-bronze .glass-card {
+  background: linear-gradient(160deg, hsl(24 15% 14%), hsl(24 10% 8%));
+  border: 1px solid hsl(25 50% 40% / 0.4);
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(25 60% 60% / 0.2);
+}
+.theme-bronze .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(25 60% 50%), hsl(20 50% 35%));
+  border: 1px solid hsl(25 80% 60% / 0.5);
+  box-shadow: 0 4px 15px hsl(25 60% 50% / 0.3);
+}
+
+/* Deep Ocean */
+.theme-ocean body {
+  background-image: radial-gradient(circle at top right, hsl(190 100% 20% / 0.4) 0%, transparent 40%),
+                    radial-gradient(circle at bottom left, hsl(180 100% 15% / 0.3) 0%, transparent 50%);
+  background-color: hsl(200 60% 6%);
+}
+.theme-ocean .glass-card {
+  background: linear-gradient(160deg, hsl(200 50% 12%), hsl(200 60% 6%));
+  border: 1px solid hsl(180 100% 40% / 0.5);
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.6), inset 0 0 20px hsl(180 100% 40% / 0.1);
+  border-radius: 1.5rem;
+}
+.theme-ocean .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(180 100% 45%), hsl(190 100% 35%));
+  border: 1px solid hsl(180 100% 60% / 0.6);
+  box-shadow: 0 4px 20px hsl(180 100% 45% / 0.4);
+}
+
+/* Ancient Tome (Gothic) */
+.theme-gothic body {
+  font-family: 'Playfair Display', serif;
+  background-color: hsl(30 20% 10%);
+  background-image: radial-gradient(circle at center, hsl(35 30% 15%) 0%, transparent 70%);
+}
+.theme-gothic h1, 
+.theme-gothic h2, 
+.theme-gothic h3, 
+.theme-gothic h4,
+.theme-gothic .font-display,
+.theme-gothic .number-display {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.theme-gothic .glass-card {
+  background: linear-gradient(145deg, hsl(30 20% 14%), hsl(30 20% 8%));
+  border: 2px solid hsl(35 40% 40% / 0.6);
+  border-radius: 4px; /* Harder edges for gothic look */
+  box-shadow: 0 10px 40px hsl(0 0% 0% / 0.8), inset 0 0 30px hsl(35 40% 30% / 0.2);
+  position: relative;
+}
+/* Inner decorative border */
+.theme-gothic .glass-card::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  border: 1px solid hsl(35 40% 40% / 0.3);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.theme-gothic .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(35 40% 40%), hsl(30 50% 25%));
+  border: 1px solid hsl(35 50% 50% / 0.5);
+  border-radius: 4px;
+  box-shadow: 0 4px 15px hsl(35 40% 40% / 0.3);
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
