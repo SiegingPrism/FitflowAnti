@@ -26,6 +26,7 @@ export interface Task {
   completed: boolean;
   completedAt?: string;
   createdAt: string;
+  xpAwarded?: boolean;
 }
 
 export interface Habit {
@@ -129,7 +130,10 @@ interface AppState {
   grantDebugXp: (amount: number, reason?: string) => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Ensure today uses local time to match UI display
+import { format } from "date-fns";
+const today = () => format(new Date(), "yyyy-MM-dd");
+
 const uid = () => crypto.randomUUID();
 
 const TASK_BASE: Record<Priority, number> = { low: 5, medium: 10, high: 20, urgent: 35 };
@@ -214,6 +218,7 @@ export const useAppStore = create<AppState>()(
             id,
             createdAt: new Date().toISOString(),
             completed: false,
+            xpAwarded: false,
             xp,
             ...t,
           };
@@ -231,6 +236,7 @@ export const useAppStore = create<AppState>()(
                 duration_min: task.durationMin,
                 xp: task.xp,
                 due_date: task.dueDate ?? null,
+                xp_awarded: false,
               }),
             );
           }
@@ -245,11 +251,17 @@ export const useAppStore = create<AppState>()(
 
           const willComplete = !task.completed;
           const completedAt = willComplete ? new Date().toISOString() : undefined;
+          const willAwardXp = willComplete && !task.xpAwarded;
 
           // Optimistic UI update
           set((s) => ({
             tasks: s.tasks.map((t) =>
-              t.id === id ? { ...t, completed: willComplete, completedAt } : t,
+              t.id === id ? {
+                ...t,
+                completed: willComplete,
+                completedAt,
+                xpAwarded: willComplete ? true : t.xpAwarded // Lock the flag to true if completed
+              } : t,
             ),
           }));
 
@@ -278,10 +290,10 @@ export const useAppStore = create<AppState>()(
                 }
               }
               
-              // res is only defined if we hit the cloud. If local, it's never 'alreadyDone'.
-              const alreadyDone = userId ? (res && res.message === 'already_done') : false;
+              // res is only defined if we hit the cloud.
+              const alreadyDoneCloud = userId ? (res && (res.message === 'already_done' || res.message === 'already_awarded')) : false;
 
-              if (!alreadyDone) {
+              if (willAwardXp && !alreadyDoneCloud) {
                 award(
                   { type: "task", priority: task.priority, category: task.category },
                   `Completed: ${task.title}`,
@@ -292,7 +304,7 @@ export const useAppStore = create<AppState>()(
               console.error("[Task] Final Error, rolling back optimistic state:", e);
               // Rollback optimistic update
               set((s) => ({
-                tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined } : t),
+                tasks: s.tasks.map((t) => t.id === id ? { ...t, completed: false, completedAt: undefined, xpAwarded: task.xpAwarded } : t),
               }));
             }
           } else {
@@ -745,6 +757,7 @@ async function hydrateFromCloud(
         completed: t.completed,
         completedAt: t.completed_at ?? undefined,
         createdAt: t.created_at,
+        xpAwarded: t.xp_awarded ?? false,
       })),
       habits: (habitsRes.data ?? []).map((h) => ({
         id: h.id,
@@ -831,6 +844,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         due_date: t.dueDate ?? null,
         completed: t.completed,
         completed_at: t.completedAt ?? null,
+        xp_awarded: t.xpAwarded ?? false,
       }));
       await supabase.from("tasks").insert(rows);
     }
