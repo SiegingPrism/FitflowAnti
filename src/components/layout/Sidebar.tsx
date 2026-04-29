@@ -8,10 +8,6 @@ const items = [
   { to: "/focus", icon: Timer, label: "Focus" },
   { to: "/habits", icon: Activity, label: "Habits" },
   { to: "/life", icon: Compass, label: "Cross-Life" },
-  { to: "/skill-tree", icon: Network, label: "Skill Tree" },
-  { to: "/calendar", icon: CalendarDays, label: "Calendar" },
-  { to: "/insights", icon: BarChart3, label: "Insights" },
-  { to: "/rewards", icon: Trophy, label: "Rewards" },
   { to: "/coach", icon: Sparkles, label: "AI Coach" },
 ];
 

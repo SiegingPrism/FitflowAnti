@@ -13,25 +13,28 @@ export const LifeBalanceRadar = () => {
   const { xpHistory } = useAppStore();
 
   // Aggregate XP by branch
-  const branchXp: Record<string, number> = {
+  const branchXp: Record<Branch, number> = {
     focus: 0,
     health: 0,
     learning: 0,
     craft: 0,
-    fitness: 0,
-    study: 0,
-    mental_health: 0,
-    work: 0,
   };
 
   xpHistory.forEach((e) => {
-    if (branchXp[e.branch] !== undefined) {
-      branchXp[e.branch] += e.amount;
+    // Map legacy branch names to new core branches if they exist
+    let branch = e.branch as string;
+    if (branch === "work") branch = "focus";
+    if (branch === "fitness" || branch === "mental_health") branch = "health";
+    if (branch === "study") branch = "learning";
+    if (branch === "other") branch = "craft";
+
+    if (branchXp[branch as Branch] !== undefined) {
+      branchXp[branch as Branch] += e.amount;
     }
   });
 
-  const data = Object.keys(branchXp).map((b) => {
-    const meta = BRANCH_META[b as Branch];
+  const data = (Object.keys(branchXp) as Branch[]).map((b) => {
+    const meta = BRANCH_META[b];
     const levelInfo = branchLevelFromXp(branchXp[b]);
     return {
       branch: meta.label,

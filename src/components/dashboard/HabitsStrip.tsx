@@ -54,7 +54,7 @@ export const HabitsStrip = () => {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">
         {habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-6">No habits yet. Add one in the Habits tab.</p>
         )}

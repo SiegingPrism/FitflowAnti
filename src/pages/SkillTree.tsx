@@ -20,7 +20,17 @@ const SkillTree = () => {
 
   const xpByBranch = useMemo(() => {
     const totals: Record<Branch, number> = { focus: 0, health: 0, learning: 0, craft: 0 };
-    for (const e of xpHistory) totals[e.branch] = (totals[e.branch] ?? 0) + e.amount;
+    for (const e of xpHistory) {
+      let branch = e.branch as string;
+      if (branch === "work") branch = "focus";
+      if (branch === "fitness" || branch === "mental_health") branch = "health";
+      if (branch === "study") branch = "learning";
+      if (branch === "other") branch = "craft";
+      
+      if (totals[branch as Branch] !== undefined) {
+        totals[branch as Branch] += e.amount;
+      }
+    }
     return totals;
   }, [xpHistory]);
 

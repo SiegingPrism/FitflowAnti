@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle, LogOut, Mail } from "lucide-react";
+import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle, LogOut, Mail, BarChart3, Trophy, Network } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
@@ -194,6 +195,39 @@ const SettingsPage = () => {
               </Chip>
             </div>
           )}
+        </FadeIn>
+
+        <FadeIn delay={0.08} className="glass-card lg:col-span-2">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Explore</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Link to="/insights" className="p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-smooth flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold truncate">Insights</p>
+                <p className="text-xs text-muted-foreground truncate">View analytics</p>
+              </div>
+            </Link>
+            <Link to="/rewards" className="p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-smooth flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold truncate">Rewards</p>
+                <p className="text-xs text-muted-foreground truncate">Your achievements</p>
+              </div>
+            </Link>
+            <Link to="/skill-tree" className="p-4 rounded-xl border border-border/40 hover:border-primary/30 hover:bg-primary/5 transition-smooth flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <Network className="w-5 h-5" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="font-semibold truncate">Skill Tree</p>
+                <p className="text-xs text-muted-foreground truncate">Level up skills</p>
+              </div>
+            </Link>
+          </div>
         </FadeIn>
 
         <FadeIn delay={0.1} className="glass-card lg:col-span-2">

@@ -116,7 +116,9 @@ describe("branchOf", () => {
   });
   it("routes health/learning tasks correctly", () => {
     expect(branchOf({ type: "task", priority: "low", category: "health" })).toBe("health");
+    expect(branchOf({ type: "task", priority: "low", category: "fitness" })).toBe("health");
     expect(branchOf({ type: "task", priority: "low", category: "learning" })).toBe("learning");
+    expect(branchOf({ type: "task", priority: "low", category: "study" })).toBe("learning");
   });
   it("routes personal/other to craft", () => {
     expect(branchOf({ type: "task", priority: "low", category: "personal" })).toBe("craft");
