@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Outfit:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Quicksand:wght@400;500;600;700&family=Righteous&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&family=Jost:wght@400;500;600&family=Kanit:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Montserrat:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Cinzel:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -140,12 +140,82 @@
 
 /* 
  * ────────────────────────────────────────────────────────────────────
- * Custom Theme Overrides 
- * To match the exact image designs
+ * Custom Theme Overrides (Typography & Advanced Design)
  * ────────────────────────────────────────────────────────────────────
  */
 
-/* Bronze Forge */
+/* 1. Ember Cosmos (Dark) */
+.theme-dark body {
+  font-family: 'Inter', sans-serif;
+}
+.theme-dark h1, .theme-dark h2, .theme-dark h3, .theme-dark h4, .theme-dark .font-display, .theme-dark .number-display {
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.02em;
+}
+.theme-dark .glass-card {
+  border-radius: 1.5rem;
+}
+
+/* 2. Daylight (Light) */
+.theme-light body {
+  font-family: 'Outfit', sans-serif;
+}
+.theme-light h1, .theme-light h2, .theme-light h3, .theme-light h4, .theme-light .font-display, .theme-light .number-display {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.01em;
+}
+.theme-light .glass-card {
+  border: 1px solid hsl(0 0% 100% / 0.8);
+  box-shadow: 0 10px 40px hsl(38 30% 60% / 0.08), inset 0 2px 0 hsl(0 0% 100% / 0.5);
+  border-radius: 1.25rem;
+}
+
+/* 3. Aurora */
+.theme-aurora body {
+  font-family: 'Quicksand', sans-serif;
+}
+.theme-aurora h1, .theme-aurora h2, .theme-aurora h3, .theme-aurora h4, .theme-aurora .font-display, .theme-aurora .number-display {
+  font-family: 'Righteous', display;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+}
+.theme-aurora .glass-card {
+  background: linear-gradient(135deg, hsl(220 50% 15% / 0.6), hsl(220 50% 10% / 0.7));
+  border: 1px solid hsl(165 80% 50% / 0.15);
+  border-radius: 2rem;
+}
+
+/* 4. Carbon */
+.theme-carbon body {
+  font-family: 'DM Sans', sans-serif;
+}
+.theme-carbon h1, .theme-carbon h2, .theme-carbon h3, .theme-carbon h4, .theme-carbon .font-display, .theme-carbon .number-display {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+.theme-carbon .glass-card {
+  border-radius: 0.5rem;
+  background: linear-gradient(160deg, hsl(0 0% 12% / 0.8), hsl(0 0% 8% / 0.9));
+  border: 1px solid hsl(0 0% 25% / 0.5);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.05);
+}
+
+/* 5. Solar */
+.theme-solar body {
+  font-family: 'Jost', sans-serif;
+}
+.theme-solar h1, .theme-solar h2, .theme-solar h3, .theme-solar h4, .theme-solar .font-display, .theme-solar .number-display {
+  font-family: 'Kanit', sans-serif;
+  letter-spacing: 0;
+}
+.theme-solar .glass-card {
+  border-radius: 2rem;
+  border: 1px solid hsl(38 95% 60% / 0.3);
+  box-shadow: 0 12px 30px hsl(20 50% 20% / 0.1), inset 0 2px 20px hsl(38 100% 90% / 0.4);
+}
+
+/* 6. Bronze Forge */
 .theme-bronze body {
   font-family: 'Manrope', sans-serif;
   background-image: radial-gradient(circle at 50% 100%, hsl(20 80% 15% / 0.6) 0%, transparent 60%),
@@ -153,12 +223,7 @@
                     radial-gradient(circle at 90% 20%, hsl(20 30% 8% / 0.7) 0%, transparent 50%);
   background-color: hsl(20 12% 6%);
 }
-.theme-bronze h1, 
-.theme-bronze h2, 
-.theme-bronze h3, 
-.theme-bronze h4,
-.theme-bronze .font-display,
-.theme-bronze .number-display {
+.theme-bronze h1, .theme-bronze h2, .theme-bronze h3, .theme-bronze h4, .theme-bronze .font-display, .theme-bronze .number-display {
   font-family: 'Syne', sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -168,6 +233,7 @@
   border: 1px solid hsl(25 60% 50% / 0.25);
   box-shadow: 0 12px 40px hsl(0 0% 0% / 0.7), inset 0 1px 0 hsl(25 70% 65% / 0.15);
   backdrop-filter: blur(16px) saturate(140%);
+  border-radius: 1rem;
 }
 .theme-bronze .bg-gradient-primary {
   background: linear-gradient(135deg, hsl(25 80% 55%), hsl(15 70% 40%), hsl(10 60% 30%));
@@ -177,34 +243,23 @@
   box-shadow: 0 4px 20px hsl(25 80% 55% / 0.4), inset 0 0 10px hsl(25 100% 80% / 0.3);
 }
 
-@keyframes bronzeShimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-/* Deep Ocean */
+/* 7. Deep Ocean */
 .theme-ocean body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   background-image: radial-gradient(circle at 70% 30%, hsl(190 100% 15% / 0.5) 0%, transparent 50%),
                     radial-gradient(circle at 30% 70%, hsl(180 100% 12% / 0.4) 0%, transparent 60%);
   background-color: hsl(200 50% 4%);
 }
-.theme-ocean h1, 
-.theme-ocean h2, 
-.theme-ocean h3, 
-.theme-ocean h4,
-.theme-ocean .font-display,
-.theme-ocean .number-display {
-  font-family: 'Outfit', sans-serif;
-  letter-spacing: -0.02em;
-  font-weight: 600;
+.theme-ocean h1, .theme-ocean h2, .theme-ocean h3, .theme-ocean h4, .theme-ocean .font-display, .theme-ocean .number-display {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.02em;
+  font-weight: 700;
 }
 .theme-ocean .glass-card {
-  background: linear-gradient(160deg, hsl(200 50% 12%), hsl(200 60% 6%));
-  border: 1px solid hsl(180 100% 40% / 0.5);
+  background: linear-gradient(160deg, hsl(200 50% 12% / 0.7), hsl(200 60% 6% / 0.8));
+  border: 1px solid hsl(180 100% 40% / 0.3);
   box-shadow: 0 8px 32px hsl(0 0% 0% / 0.6), inset 0 0 20px hsl(180 100% 40% / 0.1);
-  border-radius: 1.5rem;
+  border-radius: 2.5rem;
 }
 .theme-ocean .bg-gradient-primary {
   background: linear-gradient(135deg, hsl(180 100% 45%), hsl(190 100% 35%));
@@ -212,18 +267,13 @@
   box-shadow: 0 4px 20px hsl(180 100% 45% / 0.4);
 }
 
-/* Ancient Tome (Gothic) */
+/* 8. Ancient Tome (Gothic) */
 .theme-gothic body {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Crimson Text', serif;
   background-color: hsl(30 20% 10%);
   background-image: radial-gradient(circle at center, hsl(35 30% 15%) 0%, transparent 70%);
 }
-.theme-gothic h1, 
-.theme-gothic h2, 
-.theme-gothic h3, 
-.theme-gothic h4,
-.theme-gothic .font-display,
-.theme-gothic .number-display {
+.theme-gothic h1, .theme-gothic h2, .theme-gothic h3, .theme-gothic h4, .theme-gothic .font-display, .theme-gothic .number-display {
   font-family: 'Cinzel', serif;
   letter-spacing: 0.05em;
   font-weight: 600;
@@ -231,11 +281,10 @@
 .theme-gothic .glass-card {
   background: linear-gradient(145deg, hsl(30 20% 14%), hsl(30 20% 8%));
   border: 2px solid hsl(35 40% 40% / 0.6);
-  border-radius: 4px; /* Harder edges for gothic look */
+  border-radius: 4px;
   box-shadow: 0 10px 40px hsl(0 0% 0% / 0.8), inset 0 0 30px hsl(35 40% 30% / 0.2);
   position: relative;
 }
-/* Inner decorative border */
 .theme-gothic .glass-card::before {
   content: '';
   position: absolute;
@@ -252,5 +301,11 @@
   font-family: 'Cinzel', serif;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+@keyframes bronzeShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 

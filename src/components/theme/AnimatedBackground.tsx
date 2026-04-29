@@ -200,189 +200,208 @@ function paintAnimation(
 // Sun beam from top + warm haze (Ember Cosmos)
 function paintEmber(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
-  // beam
+  // Core beam
   ctx.save();
   ctx.translate(w * 0.5, 0);
-  ctx.rotate(Math.sin(t * 0.15) * 0.05);
-  const beam = ctx.createLinearGradient(0, 0, 0, h * 0.7);
-  beam.addColorStop(0, `hsla(${ph}, 100%, 65%, 0.22)`);
+  ctx.rotate(Math.sin(t * 0.1) * 0.08);
+  const beam = ctx.createLinearGradient(0, 0, 0, h);
+  beam.addColorStop(0, `hsla(${ph}, 100%, 60%, 0.15)`);
+  beam.addColorStop(0.5, `hsla(${ph + 10}, 90%, 55%, 0.05)`);
   beam.addColorStop(1, "hsla(0,0%,0%,0)");
   ctx.fillStyle = beam;
-  ctx.fillRect(-w * 0.4, 0, w * 0.8, h * 0.7);
+  ctx.fillRect(-w * 0.6, 0, w * 1.2, h);
   ctx.restore();
 
-  // floating warm halo
-  const cx = w * (0.2 + Math.sin(t * 0.22) * 0.05);
-  const cy = h * (0.25 + Math.cos(t * 0.18) * 0.04);
-  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.35);
-  halo.addColorStop(0, `hsla(${ph + 8}, 100%, 60%, 0.18)`);
-  halo.addColorStop(1, "hsla(0,0%,0%,0)");
-  ctx.fillStyle = halo;
-  ctx.fillRect(0, 0, w, h);
+  // Floating warm cosmic dust clouds
+  for (let i = 0; i < 3; i++) {
+    const cx = w * (0.3 + i * 0.2 + Math.sin(t * 0.15 + i) * 0.1);
+    const cy = h * (0.3 + Math.cos(t * 0.12 + i) * 0.1);
+    const r = w * (0.3 + i * 0.05);
+    const cloud = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    cloud.addColorStop(0, `hsla(${ph + i * 15}, 90%, 60%, 0.08)`);
+    cloud.addColorStop(1, "hsla(0,0%,0%,0)");
+    ctx.fillStyle = cloud;
+    ctx.fillRect(0, 0, w, h);
+  }
 }
 
 // Borealis ribbons (Aurora)
 function paintAurora(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const ribbons = [
-    { hue: 165, y: h * 0.25, amp: 80, speed: 0.7, alpha: 0.22 },
-    { hue: 200, y: h * 0.45, amp: 110, speed: 0.5, alpha: 0.18 },
-    { hue: 280, y: h * 0.65, amp: 90, speed: 0.6, alpha: 0.16 },
+    { hue: 165, y: h * 0.3, amp: h * 0.15, speed: 0.4, alpha: 0.15, phase: 0 },
+    { hue: 190, y: h * 0.5, amp: h * 0.2, speed: 0.3, alpha: 0.12, phase: 2 },
+    { hue: 280, y: h * 0.7, amp: h * 0.18, speed: 0.5, alpha: 0.1, phase: 4 },
   ];
+  
+  ctx.globalCompositeOperation = "screen";
   for (const r of ribbons) {
     ctx.beginPath();
-    ctx.moveTo(-50, r.y);
-    const seg = 40;
-    for (let x = -50; x <= w + 50; x += seg) {
-      const y = r.y
-        + Math.sin((x * 0.005) + t * r.speed) * r.amp
-        + Math.cos((x * 0.011) + t * r.speed * 0.7) * (r.amp * 0.4);
+    ctx.moveTo(-100, h + 100);
+    ctx.lineTo(-100, r.y);
+    
+    for (let x = 0; x <= w + 100; x += 50) {
+      const y = r.y 
+        + Math.sin((x * 0.003) + t * r.speed + r.phase) * r.amp
+        + Math.cos((x * 0.005) + t * r.speed * 0.6) * (r.amp * 0.5);
       ctx.lineTo(x, y);
     }
-    ctx.lineTo(w + 50, r.y + 200);
-    ctx.lineTo(-50, r.y + 200);
+    
+    ctx.lineTo(w + 100, h + 100);
     ctx.closePath();
-    const grad = ctx.createLinearGradient(0, r.y - 100, 0, r.y + 200);
-    grad.addColorStop(0, `hsla(${r.hue}, 90%, 60%, ${r.alpha})`);
-    grad.addColorStop(0.5, `hsla(${r.hue + 20}, 85%, 55%, ${r.alpha * 0.6})`);
+    
+    const grad = ctx.createLinearGradient(0, r.y - r.amp, 0, h);
+    grad.addColorStop(0, `hsla(${r.hue}, 90%, 65%, ${r.alpha})`);
+    grad.addColorStop(0.4, `hsla(${r.hue + 15}, 80%, 55%, ${r.alpha * 0.5})`);
     grad.addColorStop(1, "hsla(0,0%,0%,0)");
+    
     ctx.fillStyle = grad;
-    ctx.filter = "blur(28px)";
     ctx.fill();
-    ctx.filter = "none";
   }
+  ctx.globalCompositeOperation = "source-over";
 }
 
-// Carbon — almost nothing. Slow noise band + rare spark glow.
+// Carbon — minimal sleek geometric highlights
 function paintCarbon(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
-  // slow horizontal sweep
-  const x = (Math.sin(t * 0.1) * 0.5 + 0.5) * w;
-  const grad = ctx.createRadialGradient(x, h * 0.5, 0, x, h * 0.5, w * 0.4);
-  grad.addColorStop(0, `hsla(${ph}, 80%, 50%, 0.05)`);
-  grad.addColorStop(1, "hsla(0,0%,0%,0)");
-  ctx.fillStyle = grad;
+  
+  // Slow panning spotlight
+  const cx = w * (0.5 + Math.sin(t * 0.1) * 0.3);
+  const cy = h * (0.5 + Math.cos(t * 0.15) * 0.2);
+  const spot = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.5);
+  spot.addColorStop(0, `hsla(${ph}, 80%, 50%, 0.08)`);
+  spot.addColorStop(1, "hsla(0,0%,0%,0)");
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle moving diagonal sheen
+  const offset = (t * 50) % (w * 2);
+  const sheen = ctx.createLinearGradient(offset - w, 0, offset, h);
+  sheen.addColorStop(0, "hsla(0,0%,100%,0)");
+  sheen.addColorStop(0.5, "hsla(0,0%,100%,0.015)");
+  sheen.addColorStop(1, "hsla(0,0%,100%,0)");
+  ctx.fillStyle = sheen;
   ctx.fillRect(0, 0, w, h);
 }
 
-// Solar — pulsing central radial heat
+// Solar — Majestic pulsing corona
 function paintSolar(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
-  const pulse = 0.5 + Math.sin(t * 1.2) * 0.5;
-  const r = Math.max(w, h) * (0.4 + pulse * 0.15);
   const cx = w * 0.5;
-  const cy = h * 0.45;
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  g.addColorStop(0, `hsla(${ph + 18}, 100%, 65%, ${0.25 + pulse * 0.18})`);
-  g.addColorStop(0.4, `hsla(${ph + 5}, 95%, 55%, ${0.12 + pulse * 0.06})`);
-  g.addColorStop(1, "hsla(0,0%,0%,0)");
-  ctx.fillStyle = g;
+  const cy = h * 0.4;
+  
+  // Core sun glow
+  const pulse = 0.5 + Math.sin(t * 1.2) * 0.5;
+  const coreR = Math.max(w, h) * (0.35 + pulse * 0.05);
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+  core.addColorStop(0, `hsla(${ph + 15}, 100%, 70%, ${0.2 + pulse * 0.1})`);
+  core.addColorStop(0.5, `hsla(${ph}, 95%, 55%, ${0.1 + pulse * 0.05})`);
+  core.addColorStop(1, "hsla(0,0%,0%,0)");
+  ctx.fillStyle = core;
   ctx.fillRect(0, 0, w, h);
 
-  // heat shimmer band
-  ctx.fillStyle = `hsla(${ph + 25}, 100%, 70%, 0.05)`;
-  for (let i = 0; i < 6; i++) {
-    const yy = h * 0.6 + Math.sin(t * 2 + i) * 12;
-    ctx.fillRect(0, yy + i * 8, w, 1);
+  // Rotating solar flares
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(t * 0.05);
+  for (let i = 0; i < 4; i++) {
+    ctx.rotate((Math.PI * 2) / 4);
+    const flare = ctx.createLinearGradient(0, 0, 0, Math.max(w, h) * 0.8);
+    flare.addColorStop(0, `hsla(${ph + 20}, 100%, 65%, 0.1)`);
+    flare.addColorStop(1, "hsla(0,0%,0%,0)");
+    ctx.fillStyle = flare;
+    ctx.beginPath();
+    ctx.moveTo(-50, 0);
+    ctx.lineTo(0, Math.max(w, h) * 0.8);
+    ctx.lineTo(50, 0);
+    ctx.fill();
   }
+  ctx.restore();
 }
 
-// Daylight — calm pastel drift
+// Daylight — highly refined pastel glassmorphism blobs
 function paintDaylight(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
-  for (let i = 0; i < 3; i++) {
-    const cx = w * (0.25 + i * 0.3 + Math.sin(t * 0.15 + i) * 0.05);
-    const cy = h * (0.35 + Math.cos(t * 0.12 + i) * 0.08);
-    const r  = w * 0.32;
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    g.addColorStop(0, `hsla(${ph + i * 12}, 90%, 70%, 0.18)`);
-    g.addColorStop(1, "hsla(0,0%,0%,0)");
-    ctx.fillStyle = g;
+  const blobs = [
+    { x: 0.2, y: 0.2, r: 0.45, h: ph, a: 0.15, s: 0.1 },
+    { x: 0.8, y: 0.3, r: 0.35, h: ph + 20, a: 0.12, s: 0.15 },
+    { x: 0.5, y: 0.8, r: 0.5, h: ph - 15, a: 0.1, s: 0.08 }
+  ];
+
+  for (const b of blobs) {
+    const cx = w * (b.x + Math.sin(t * b.s) * 0.1);
+    const cy = h * (b.y + Math.cos(t * b.s * 1.2) * 0.1);
+    const r = Math.max(w, h) * b.r;
+    
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, `hsla(${b.h}, 90%, 75%, ${b.a})`);
+    grad.addColorStop(0.5, `hsla(${b.h}, 85%, 70%, ${b.a * 0.4})`);
+    grad.addColorStop(1, "hsla(0,0%,0%,0)");
+    
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
   }
 }
 
-// Oceanic — Deep bioluminescent water rays and caustics
+// Oceanic — smooth underwater light rays and deep bioluminescence
 function paintOceanic(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
   
-  // Caustic light rays from top
-  for (let i = 0; i < 4; i++) {
-    const xOffset = Math.sin(t * 0.5 + i * 2) * w * 0.2;
+  // Gentle underwater light rays
+  ctx.globalCompositeOperation = "screen";
+  for (let i = 0; i < 5; i++) {
+    const xOffset = w * (0.2 * i) + Math.sin(t * 0.2 + i) * (w * 0.1);
     const grad = ctx.createLinearGradient(xOffset, 0, xOffset + w * 0.3, h);
-    grad.addColorStop(0, `hsla(${ph}, 100%, 50%, 0.15)`);
+    grad.addColorStop(0, `hsla(${ph + 10}, 90%, 60%, 0.1)`);
     grad.addColorStop(1, "hsla(0,0%,0%,0)");
     
     ctx.beginPath();
-    ctx.moveTo(xOffset, -100);
-    ctx.lineTo(xOffset + w * 0.4, -100);
-    ctx.lineTo(xOffset + w * 0.8, h + 100);
-    ctx.lineTo(xOffset - w * 0.2, h + 100);
+    ctx.moveTo(xOffset - 100, -50);
+    ctx.lineTo(xOffset + 200, -50);
+    ctx.lineTo(xOffset + w * 0.5, h + 50);
+    ctx.lineTo(xOffset - w * 0.2, h + 50);
     ctx.fillStyle = grad;
     ctx.fill();
   }
+  ctx.globalCompositeOperation = "source-over";
 
-  // Deep glowing orbs
-  const cx = w * (0.8 + Math.cos(t * 0.2) * 0.1);
-  const cy = h * (0.8 + Math.sin(t * 0.15) * 0.1);
-  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.4);
-  orb.addColorStop(0, `hsla(${ph - 20}, 100%, 40%, 0.25)`);
+  // Deep abyssal glow
+  const cx = w * 0.5;
+  const cy = h * 0.9;
+  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.6);
+  orb.addColorStop(0, `hsla(${ph - 15}, 100%, 45%, 0.15)`);
   orb.addColorStop(1, "hsla(0,0%,0%,0)");
   ctx.fillStyle = orb;
   ctx.fillRect(0, 0, w, h);
 }
 
-// Forge — Dynamic metallic heat, flowing liquid metal, and intense furnace glow
+// Forge — Elegant, immersive deep heat and metallic ambiance
 function paintForge(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
   const { h: ph } = readPrimaryHsl();
   
-  // Dynamic heat waves/pulse from the bottom center
-  const pulse = 0.5 + Math.sin(t * 1.5) * 0.5;
-  const pulse2 = 0.5 + Math.cos(t * 0.8) * 0.5;
-  
-  // Intense furnace glow from bottom
+  // Intense but smooth bottom furnace glow
+  const pulse = Math.sin(t * 1.2) * 0.5 + 0.5;
   const cx = w * 0.5;
-  const cy = h * 1.1;
-  const r = Math.max(w, h) * (0.6 + pulse * 0.1);
+  const cy = h * 1.0;
+  const r = Math.max(w, h) * (0.6 + pulse * 0.05);
   
   const furnace = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  furnace.addColorStop(0, `hsla(${ph}, 90%, 60%, 0.5)`);
-  furnace.addColorStop(0.2, `hsla(${ph - 15}, 100%, 50%, 0.3)`);
-  furnace.addColorStop(0.6, `hsla(${ph - 25}, 90%, 20%, 0.1)`);
+  furnace.addColorStop(0, `hsla(${ph}, 95%, 55%, 0.35)`);
+  furnace.addColorStop(0.3, `hsla(${ph - 15}, 100%, 45%, 0.15)`);
+  furnace.addColorStop(0.7, `hsla(${ph - 25}, 90%, 25%, 0.05)`);
   furnace.addColorStop(1, "hsla(0,0%,0%,0)");
   
   ctx.fillStyle = furnace;
   ctx.fillRect(0, 0, w, h);
 
-  // Flowing liquid metal / heat distortion lines
-  ctx.lineWidth = 2;
-  for (let i = 0; i < 6; i++) {
-    ctx.beginPath();
-    const yBase = h * 0.85 + i * 25;
-    for (let x = 0; x <= w; x += 30) {
-      const y = yBase + Math.sin(x * 0.008 + t * 2 + i) * 20 * pulse2;
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = `hsla(${ph}, 100%, 50%, ${0.08 + i * 0.02})`;
-    ctx.stroke();
+  // Subtle ambient heat clouds (soot/smoke)
+  for (let i = 0; i < 2; i++) {
+    const sx = w * (i === 0 ? 0.2 : 0.8) + Math.sin(t * 0.2 + i) * (w * 0.1);
+    const sy = h * (0.4 + i * 0.3) + Math.cos(t * 0.25 + i) * (h * 0.1);
+    const smoke = ctx.createRadialGradient(sx, sy, 0, sx, sy, w * 0.5);
+    smoke.addColorStop(0, `hsla(${ph - 20}, 60%, 15%, 0.3)`);
+    smoke.addColorStop(1, "hsla(0,0%,0%,0)");
+    
+    ctx.fillStyle = smoke;
+    ctx.fillRect(0, 0, w, h);
   }
-
-  // Dark smoke/soot creeping from edges
-  const sx1 = w * (0.1 + Math.sin(t * 0.3) * 0.1);
-  const sy1 = h * 0.1;
-  const smoke1 = ctx.createRadialGradient(sx1, sy1, 0, sx1, sy1, w * 0.7);
-  smoke1.addColorStop(0, `hsla(20, 20%, 2%, 0.9)`);
-  smoke1.addColorStop(1, "hsla(0,0%,0%,0)");
-  
-  ctx.fillStyle = smoke1;
-  ctx.fillRect(0, 0, w, h);
-  
-  const sx2 = w * (0.9 + Math.cos(t * 0.4) * 0.1);
-  const sy2 = h * 0.2;
-  const smoke2 = ctx.createRadialGradient(sx2, sy2, 0, sx2, sy2, w * 0.6);
-  smoke2.addColorStop(0, `hsla(15, 30%, 4%, 0.8)`);
-  smoke2.addColorStop(1, "hsla(0,0%,0%,0)");
-  
-  ctx.fillStyle = smoke2;
-  ctx.fillRect(0, 0, w, h);
 }
