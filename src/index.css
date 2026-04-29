@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Outfit:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -147,10 +147,11 @@
 
 /* Bronze Forge */
 .theme-bronze body {
-  font-family: 'Inter', sans-serif;
-  background-image: radial-gradient(circle at 80% 50%, hsl(20 50% 15% / 0.8) 0%, transparent 60%),
-                    radial-gradient(circle at 20% 80%, hsl(24 30% 8% / 0.6) 0%, transparent 50%);
-  background-color: hsl(24 15% 6%);
+  font-family: 'Manrope', sans-serif;
+  background-image: radial-gradient(circle at 50% 100%, hsl(20 80% 15% / 0.6) 0%, transparent 60%),
+                    radial-gradient(circle at 10% 10%, hsl(24 20% 5% / 0.8) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 20%, hsl(20 30% 8% / 0.7) 0%, transparent 50%);
+  background-color: hsl(20 12% 6%);
 }
 .theme-bronze h1, 
 .theme-bronze h2, 
@@ -158,19 +159,28 @@
 .theme-bronze h4,
 .theme-bronze .font-display,
 .theme-bronze .number-display {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 .theme-bronze .glass-card {
-  background: linear-gradient(160deg, hsl(24 15% 14%), hsl(24 10% 8%));
-  border: 1px solid hsl(25 50% 40% / 0.4);
-  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.5), inset 0 1px 0 hsl(25 60% 60% / 0.2);
+  background: linear-gradient(160deg, hsl(20 15% 12% / 0.8), hsl(20 10% 6% / 0.9));
+  border: 1px solid hsl(25 60% 50% / 0.25);
+  box-shadow: 0 12px 40px hsl(0 0% 0% / 0.7), inset 0 1px 0 hsl(25 70% 65% / 0.15);
+  backdrop-filter: blur(16px) saturate(140%);
 }
 .theme-bronze .bg-gradient-primary {
-  background: linear-gradient(135deg, hsl(25 60% 50%), hsl(20 50% 35%));
-  border: 1px solid hsl(25 80% 60% / 0.5);
-  box-shadow: 0 4px 15px hsl(25 60% 50% / 0.3);
+  background: linear-gradient(135deg, hsl(25 80% 55%), hsl(15 70% 40%), hsl(10 60% 30%));
+  background-size: 200% 200%;
+  animation: bronzeShimmer 4s ease infinite;
+  border: 1px solid hsl(25 90% 65% / 0.5);
+  box-shadow: 0 4px 20px hsl(25 80% 55% / 0.4), inset 0 0 10px hsl(25 100% 80% / 0.3);
+}
+
+@keyframes bronzeShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Deep Ocean */
