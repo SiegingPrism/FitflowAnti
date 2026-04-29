@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;500;600&family=Orbitron:wght@500;700;900&family=Exo+2:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Outfit:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -147,10 +147,10 @@
 
 /* Bronze Forge */
 .theme-bronze body {
-  font-family: 'Barlow', sans-serif;
-  background-image: radial-gradient(circle at top left, hsl(24 20% 15%) 0%, transparent 40%),
-                    radial-gradient(circle at bottom right, hsl(20 40% 10%) 0%, transparent 50%);
-  background-color: hsl(24 15% 10%);
+  font-family: 'Inter', sans-serif;
+  background-image: radial-gradient(circle at 80% 50%, hsl(20 50% 15% / 0.8) 0%, transparent 60%),
+                    radial-gradient(circle at 20% 80%, hsl(24 30% 8% / 0.6) 0%, transparent 50%);
+  background-color: hsl(24 15% 6%);
 }
 .theme-bronze h1, 
 .theme-bronze h2, 
@@ -158,9 +158,9 @@
 .theme-bronze h4,
 .theme-bronze .font-display,
 .theme-bronze .number-display {
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
 }
 .theme-bronze .glass-card {
   background: linear-gradient(160deg, hsl(24 15% 14%), hsl(24 10% 8%));
@@ -175,10 +175,10 @@
 
 /* Deep Ocean */
 .theme-ocean body {
-  font-family: 'Exo 2', sans-serif;
-  background-image: radial-gradient(circle at top right, hsl(190 100% 20% / 0.4) 0%, transparent 40%),
-                    radial-gradient(circle at bottom left, hsl(180 100% 15% / 0.3) 0%, transparent 50%);
-  background-color: hsl(200 60% 6%);
+  font-family: 'Inter', sans-serif;
+  background-image: radial-gradient(circle at 70% 30%, hsl(190 100% 15% / 0.5) 0%, transparent 50%),
+                    radial-gradient(circle at 30% 70%, hsl(180 100% 12% / 0.4) 0%, transparent 60%);
+  background-color: hsl(200 50% 4%);
 }
 .theme-ocean h1, 
 .theme-ocean h2, 
@@ -186,9 +186,9 @@
 .theme-ocean h4,
 .theme-ocean .font-display,
 .theme-ocean .number-display {
-  font-family: 'Orbitron', sans-serif;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
 }
 .theme-ocean .glass-card {
   background: linear-gradient(160deg, hsl(200 50% 12%), hsl(200 60% 6%));

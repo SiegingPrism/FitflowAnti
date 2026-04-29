@@ -18,7 +18,9 @@ export type AnimationKind =
   | "aurora"     // borealis ribbons drifting across the sky
   | "carbon"     // matte black + faint sparks + slow noise
   | "solar"      // pulsing radial heat + heat-distortion
-  | "daylight";  // soft pastel gradient drift
+  | "daylight"   // soft pastel gradient drift
+  | "oceanic"    // deep water bioluminescence
+  | "forge";     // heavy industrial heat and sparks
 
 export interface ParticleSettings {
   enabled: boolean;
@@ -475,7 +477,7 @@ export const THEME_CONFIGS: ThemeConfig[] = [
     unlockLevel: 5,
     swatch: "linear-gradient(135deg, hsl(24 10% 10%), hsl(25 70% 50%))",
     scheme: "dark",
-    animation: "carbon",
+    animation: "forge",
     particles: {
       enabled: true,
       count: 20,
@@ -545,7 +547,7 @@ export const THEME_CONFIGS: ThemeConfig[] = [
     unlockLevel: 9,
     swatch: "linear-gradient(135deg, hsl(200 40% 10%), hsl(180 100% 40%))",
     scheme: "dark",
-    animation: "aurora",
+    animation: "oceanic",
     particles: {
       enabled: true,
       count: 40,

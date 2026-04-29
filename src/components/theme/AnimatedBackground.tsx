@@ -192,6 +192,8 @@ function paintAnimation(
     case "carbon":   return paintCarbon(ctx, w, h, t);
     case "solar":    return paintSolar(ctx, w, h, t);
     case "daylight": return paintDaylight(ctx, w, h, t);
+    case "oceanic":  return paintOceanic(ctx, w, h, t);
+    case "forge":    return paintForge(ctx, w, h, t);
   }
 }
 
@@ -297,4 +299,63 @@ function paintDaylight(ctx: CanvasRenderingContext2D, w: number, h: number, t: n
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
   }
+}
+
+// Oceanic — Deep bioluminescent water rays and caustics
+function paintOceanic(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  const { h: ph } = readPrimaryHsl();
+  
+  // Caustic light rays from top
+  for (let i = 0; i < 4; i++) {
+    const xOffset = Math.sin(t * 0.5 + i * 2) * w * 0.2;
+    const grad = ctx.createLinearGradient(xOffset, 0, xOffset + w * 0.3, h);
+    grad.addColorStop(0, `hsla(${ph}, 100%, 50%, 0.15)`);
+    grad.addColorStop(1, "hsla(0,0%,0%,0)");
+    
+    ctx.beginPath();
+    ctx.moveTo(xOffset, -100);
+    ctx.lineTo(xOffset + w * 0.4, -100);
+    ctx.lineTo(xOffset + w * 0.8, h + 100);
+    ctx.lineTo(xOffset - w * 0.2, h + 100);
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // Deep glowing orbs
+  const cx = w * (0.8 + Math.cos(t * 0.2) * 0.1);
+  const cy = h * (0.8 + Math.sin(t * 0.15) * 0.1);
+  const orb = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.4);
+  orb.addColorStop(0, `hsla(${ph - 20}, 100%, 40%, 0.25)`);
+  orb.addColorStop(1, "hsla(0,0%,0%,0)");
+  ctx.fillStyle = orb;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// Forge — Heavy metallic heat, localized intense copper glow and smoke
+function paintForge(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  const { h: ph } = readPrimaryHsl();
+  
+  // Intense furnace glow on the right
+  const pulse = 0.5 + Math.sin(t * 0.8) * 0.5;
+  const cx = w * 0.85;
+  const cy = h * 0.5;
+  const r = Math.max(w, h) * (0.5 + pulse * 0.05);
+  
+  const furnace = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  furnace.addColorStop(0, `hsla(${ph}, 80%, 50%, 0.4)`);
+  furnace.addColorStop(0.3, `hsla(${ph - 10}, 90%, 40%, 0.15)`);
+  furnace.addColorStop(1, "hsla(0,0%,0%,0)");
+  
+  ctx.fillStyle = furnace;
+  ctx.fillRect(0, 0, w, h);
+
+  // Slow dark smoke layers creeping from bottom left
+  const sx = w * (0.1 + Math.sin(t * 0.3) * 0.05);
+  const sy = h * (0.9 + Math.cos(t * 0.2) * 0.05);
+  const smoke = ctx.createRadialGradient(sx, sy, 0, sx, sy, w * 0.6);
+  smoke.addColorStop(0, `hsla(20, 10%, 5%, 0.8)`);
+  smoke.addColorStop(1, "hsla(0,0%,0%,0)");
+  
+  ctx.fillStyle = smoke;
+  ctx.fillRect(0, 0, w, h);
 }
