@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
-  const { userName, setUserName, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal } = useAppStore();
+  const { userName, setUserName, primaryGoals, setPrimaryGoals, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal } = useAppStore();
   const { user, signOut } = useAuth();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useTheme();
@@ -110,6 +110,53 @@ const SettingsPage = () => {
             </div>
           )}
         </FadeIn>
++
++        <FadeIn delay={0.03} className="glass-card">
++          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Your Goals</p>
++          <p className="text-sm text-muted-foreground mb-4">Select up to 2 areas of focus. This helps the AI Coach tailor your experience.</p>
++          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
++            {[
++              { id: "ship", emoji: "🚀", label: "Ship more" },
++              { id: "fit", emoji: "💪", label: "Get fit" },
++              { id: "learn", emoji: "📚", label: "Learn" },
++              { id: "recover", emoji: "🌿", label: "Recover" },
++            ].map((g) => {
++              const active = primaryGoals.includes(g.id as any);
++              return (
++                <button
++                  key={g.id}
++                  onClick={() => {
++                    if (active) {
++                      if (primaryGoals.length > 1) {
++                        setPrimaryGoals(primaryGoals.filter(i => i !== g.id));
++                        toast.success("Goal removed");
++                      } else {
++                        toast.error("You must have at least one goal.");
++                      }
++                    } else {
++                      if (primaryGoals.length < 2) {
++                        setPrimaryGoals([...primaryGoals, g.id as any]);
++                        toast.success("Goal added");
++                      } else {
++                        toast.error("Max 2 goals allowed.");
++                      }
++                    }
++                  }}
++                  className={cn(
++                    "flex items-center gap-3 p-3 rounded-xl border-2 transition-smooth text-left",
++                    active ? "border-primary bg-primary/5 shadow-elevated" : "border-border/40 hover:border-primary/20"
++                  )}
++                >
++                  <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center text-lg">{g.emoji}</div>
++                  <div className="flex-1 min-w-0">
++                    <p className="font-semibold text-sm truncate">{g.label}</p>
++                  </div>
++                  {active && <Check className="w-4 h-4 text-primary" />}
++                </button>
++              );
++            })}
++          </div>
++        </FadeIn>
 
         <FadeIn delay={0.05} className="glass-card">
           <div className="flex items-center justify-between mb-3">

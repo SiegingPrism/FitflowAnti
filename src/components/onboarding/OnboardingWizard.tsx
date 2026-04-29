@@ -52,7 +52,7 @@ export const OnboardingWizard = () => {
   const completeOnboarding = useAppStore((s) => s.completeOnboarding);
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
-  const [goal, setGoal] = useState<PrimaryGoal | null>(null);
+  const [goals, setGoals] = useState<PrimaryGoal[]>([]);
   const [picked, setPicked] = useState<string[]>([]);
   const [focus, setFocus] = useState<number>(50);
 
@@ -61,7 +61,7 @@ export const OnboardingWizard = () => {
   const canNext = () => {
     if (step === 0) return true;
     if (step === 1) return name.trim().length > 0;
-    if (step === 2) return goal !== null;
+    if (step === 2) return goals.length >= 2;
     if (step === 3) return picked.length >= 2 && picked.length <= 3;
     if (step === 4) return true;
     return false;
@@ -71,12 +71,12 @@ export const OnboardingWizard = () => {
   const back = () => setStep((s) => Math.max(0, s - 1));
 
   const finish = () => {
-    if (!goal) return;
-    const pool = STARTER_HABITS[goal];
+    if (goals.length === 0) return;
+    const pool = goals.flatMap(g => STARTER_HABITS[g]);
     const starterHabits = pool.filter((h) => picked.includes(h.name));
     completeOnboarding({
       userName: name.trim() || "Friend",
-      primaryGoal: goal,
+      primaryGoals: goals,
       dailyFocusTargetMin: focus,
       starterHabits,
     });
@@ -109,9 +109,9 @@ export const OnboardingWizard = () => {
             >
               {step === 0 && <WelcomeStep />}
               {step === 1 && <NameStep name={name} setName={setName} />}
-              {step === 2 && <GoalStep goal={goal} setGoal={(g) => { setGoal(g); setPicked([]); }} />}
-              {step === 3 && goal && (
-                <HabitsStep goal={goal} picked={picked} setPicked={setPicked} />
+              {step === 2 && <GoalStep goals={goals} setGoals={(gs) => { setGoals(gs); setPicked([]); }} />}
+              {step === 3 && goals.length > 0 && (
+                <HabitsStep goals={goals} picked={picked} setPicked={setPicked} />
               )}
               {step === 4 && <FocusStep focus={focus} setFocus={setFocus} />}
             </motion.div>
@@ -191,22 +191,31 @@ const NameStep = ({ name, setName }: { name: string; setName: (v: string) => voi
   </div>
 );
 
-const GoalStep = ({ goal, setGoal }: { goal: PrimaryGoal | null; setGoal: (g: PrimaryGoal) => void }) => (
+const GoalStep = ({ goals, setGoals }: { goals: PrimaryGoal[]; setGoals: (gs: PrimaryGoal[]) => void }) => {
+  const toggle = (id: PrimaryGoal) => {
+    if (goals.includes(id)) setGoals(goals.filter((g) => g !== id));
+    else if (goals.length < 2) setGoals([...goals, id]);
+  };
+  return (
   <div>
     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Step 2 of 4</p>
-    <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">Pick a primary goal</h2>
-    <p className="text-sm text-muted-foreground mt-2">This shapes the starter habits and how the Coach prioritizes.</p>
+    <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">Pick 2 primary goals</h2>
+    <p className="text-sm text-muted-foreground mt-2">These shape the starter habits and how the Coach prioritizes. <span className="font-semibold text-foreground">Picked: {goals.length}/2</span></p>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
       {GOALS.map((g) => {
-        const active = goal === g.id;
+        const active = goals.includes(g.id);
+        const disabled = !active && goals.length >= 2;
         return (
           <button
             key={g.id}
-            onClick={() => setGoal(g.id)}
+            onClick={() => toggle(g.id)}
+            disabled={disabled}
             className={`text-left p-4 rounded-2xl border-2 transition-smooth ${
               active
                 ? "border-primary bg-primary/5 shadow-elevated"
-                : "border-border hover:border-primary/40 hover:bg-muted/40"
+                : disabled
+                  ? "border-border opacity-40 cursor-not-allowed"
+                  : "border-border hover:border-primary/40 hover:bg-muted/40"
             }`}
           >
             <div className="flex items-center gap-3">
@@ -225,17 +234,18 @@ const GoalStep = ({ goal, setGoal }: { goal: PrimaryGoal | null; setGoal: (g: Pr
     </div>
   </div>
 );
+};
 
 const HabitsStep = ({
-  goal,
+  goals,
   picked,
   setPicked,
 }: {
-  goal: PrimaryGoal;
+  goals: PrimaryGoal[];
   picked: string[];
   setPicked: (v: string[]) => void;
 }) => {
-  const pool = STARTER_HABITS[goal];
+  const pool = Array.from(new Set(goals.flatMap(g => STARTER_HABITS[g])));
   const toggle = (name: string) => {
     if (picked.includes(name)) setPicked(picked.filter((n) => n !== name));
     else if (picked.length < 3) setPicked([...picked, name]);

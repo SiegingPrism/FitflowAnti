@@ -85,7 +85,7 @@ interface AppState {
   userName: string;
 
   onboardedAt?: string;
-  primaryGoal?: PrimaryGoal;
+  primaryGoals: PrimaryGoal[];
   dailyFocusTargetMin: number;
 
   // Tasks
@@ -112,7 +112,7 @@ interface AppState {
   // Onboarding
   completeOnboarding: (data: {
     userName: string;
-    primaryGoal: PrimaryGoal;
+    primaryGoals: PrimaryGoal[];
     dailyFocusTargetMin: number;
     starterHabits: Array<Omit<Habit, "id" | "createdAt" | "history">>;
   }) => void;
@@ -121,6 +121,7 @@ interface AppState {
   // User
   setUserName: (name: string) => void;
   setDailyFocusTarget: (min: number) => void;
+  setPrimaryGoals: (goals: PrimaryGoal[]) => void;
 
   // Cloud lifecycle
   bindUser: (userId: string | null) => Promise<void>;
@@ -149,7 +150,7 @@ const EMPTY_STATE = {
   userName: "Friend",
   dailyFocusTargetMin: 50,
   onboardedAt: undefined as string | undefined,
-  primaryGoal: undefined as PrimaryGoal | undefined,
+  primaryGoals: [] as PrimaryGoal[],
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
@@ -542,7 +543,7 @@ export const useAppStore = create<AppState>()(
 
         awardFor: award,
 
-        completeOnboarding: ({ userName, primaryGoal, dailyFocusTargetMin, starterHabits }) => {
+        completeOnboarding: ({ userName, primaryGoals, dailyFocusTargetMin, starterHabits }) => {
           const now = new Date().toISOString();
           const newHabits: Habit[] = starterHabits.map((h) => ({
             ...h,
@@ -552,7 +553,7 @@ export const useAppStore = create<AppState>()(
           }));
           set((s) => ({
             userName,
-            primaryGoal,
+            primaryGoals,
             dailyFocusTargetMin,
             onboardedAt: now,
             habits: [...newHabits, ...s.habits],
@@ -566,7 +567,8 @@ export const useAppStore = create<AppState>()(
                 .from("profiles")
                 .update({
                   display_name: userName,
-                  primary_goal: primaryGoal,
+                  primary_goals: primaryGoals,
+                  primary_goal: primaryGoals[0] || null,
                   daily_focus_target_min: dailyFocusTargetMin,
                   onboarded_at: now,
                 })
@@ -606,6 +608,21 @@ export const useAppStore = create<AppState>()(
               supabase
                 .from("profiles")
                 .update({ daily_focus_target_min: min })
+                .eq("user_id", userId),
+            );
+          }
+        },
+        setPrimaryGoals: (goals) => {
+          set({ primaryGoals: goals });
+          const userId = get().userId;
+          if (userId) {
+            safe(
+              supabase
+                .from("profiles")
+                .update({ 
+                  primary_goals: goals,
+                  primary_goal: goals[0] || null
+                })
                 .eq("user_id", userId),
             );
           }
@@ -673,7 +690,7 @@ export const useAppStore = create<AppState>()(
         totalXP: s.totalXP,
         userName: s.userName,
         onboardedAt: s.onboardedAt,
-        primaryGoal: s.primaryGoal,
+        primaryGoals: s.primaryGoals,
         dailyFocusTargetMin: s.dailyFocusTargetMin,
         claimedSlots: s.claimedSlots,
       }),
@@ -793,7 +810,7 @@ async function hydrateFromCloud(
       })),
       totalXP: profile?.total_xp ?? 0,
       userName: profile?.display_name ?? "Friend",
-      primaryGoal: (profile?.primary_goal ?? undefined) as PrimaryGoal | undefined,
+      primaryGoals: (profile?.primary_goals ?? (profile?.primary_goal ? [profile.primary_goal] : [])) as PrimaryGoal[],
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
       onboardedAt: profile?.onboarded_at ?? undefined,
       hydrated: true, // Ensure hydration flag is set even if some data is partial
@@ -815,7 +832,8 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
       .upsert({
         user_id: userId,
         display_name: local.userName,
-        primary_goal: local.primaryGoal ?? null,
+        primary_goals: local.primaryGoals,
+        primary_goal: local.primaryGoals[0] || null,
         daily_focus_target_min: local.dailyFocusTargetMin,
         onboarded_at: local.onboardedAt ?? null,
         total_xp: local.totalXP,
