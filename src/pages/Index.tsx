@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { HeroCard } from "@/components/dashboard/HeroCard";
@@ -14,7 +15,7 @@ const Dashboard = () => {
       <TopBar
         eyebrow="Dashboard"
         title="Good to see you."
-        subtitle={format(new Date(), "EEEE, MMMM d")}
+        subtitle={format(getISTDate(), "EEEE, MMMM d")}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">

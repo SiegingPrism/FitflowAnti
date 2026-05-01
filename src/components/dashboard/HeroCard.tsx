@@ -1,3 +1,4 @@
+import { getISTDate, getISTTodayStr } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -5,7 +6,7 @@ import { useAppStore, getLevel } from "@/lib/store";
 import { format } from "date-fns";
 
 const greeting = () => {
-  const h = new Date().getHours();
+  const h = getISTDate().getHours();
   if (h < 5) return "Working late";
   if (h < 12) return "Good morning";
   if (h < 17) return "Good afternoon";
@@ -23,19 +24,19 @@ const productivityState = (rate: number) => {
 const getEmotionalFeedback = (completed: number, total: number) => {
   if (total === 0) return "A quiet day ahead. Consider adding a small habit to build momentum.";
   if (completed === 0) {
-    if (new Date().getHours() > 17) return "You're slipping today. Just do 1 simple task right now to get the ball rolling.";
+    if (getISTDate().getHours() > 17) return "You're slipping today. Just do 1 simple task right now to get the ball rolling.";
     return "Ready to make progress? Start with just one task.";
   }
   const rate = completed / total;
   if (rate === 1) return "Incredible work! You've cleared your plate for today. Take a breather.";
   if (rate >= 0.7) return "You're on fire! 🔥 Push yourself for one more task to maximize your streak.";
-  if (rate <= 0.3 && new Date().getHours() > 16) return "Pace is a bit slow today. Knock out a quick task to stay on track.";
+  if (rate <= 0.3 && getISTDate().getHours() > 16) return "Pace is a bit slow today. Knock out a quick task to stay on track.";
   return `You've completed ${completed} of ${total} tasks today. Keep the momentum.`;
 };
 
 export const HeroCard = () => {
   const { tasks, focusSessions, totalXP, userName } = useAppStore();
-  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const todayStr = getISTTodayStr();
   const todays = tasks.filter((t) => (t.dueDate ?? "").startsWith(todayStr) || !t.dueDate);
   const completed = todays.filter((t) => t.completed).length;
   const total = Math.max(todays.length, 1);

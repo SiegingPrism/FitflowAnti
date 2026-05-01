@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Trophy, Flame, Target, Zap, Sparkles, Award, Star, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -13,7 +14,7 @@ const RewardsPage = () => {
   const completed = tasks.filter((t) => t.completed).length;
   const longestStreak = Math.max(0, ...habits.map((h) => {
     const set = new Set(h.history);
-    let s = 0; const cur = new Date();
+    let s = 0; const cur = getISTDate();
     while (true) { const k = cur.toISOString().slice(0,10); if (set.has(k)) { s++; cur.setDate(cur.getDate()-1); } else break; }
     return s;
   }));

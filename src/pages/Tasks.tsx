@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Search, Trash2, Calendar as CalIcon, Check, Clock, Zap, Filter } from "lucide-react";
@@ -155,10 +156,10 @@ const NewTaskDialog = ({ onCreate }: { onCreate: (t: { title: string; priority: 
   const [priority, setPriority] = useState<Priority>("medium");
   const [category, setCategory] = useState<TaskCategory>("work");
   const [durationMin, setDurationMin] = useState(25);
-  const [dueDate, setDueDate] = useState<Date | undefined>(new Date());
+  const [dueDate, setDueDate] = useState<Date | undefined>(getISTDate());
   const [notes, setNotes] = useState("");
 
-  const reset = () => { setTitle(""); setPriority("medium"); setCategory("work"); setDurationMin(25); setDueDate(new Date()); setNotes(""); };
+  const reset = () => { setTitle(""); setPriority("medium"); setCategory("work"); setDurationMin(25); setDueDate(getISTDate()); setNotes(""); };
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>

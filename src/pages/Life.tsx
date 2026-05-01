@@ -1,3 +1,4 @@
+import { getISTDate, getISTISOString } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/layout/AppShell";
@@ -17,7 +18,7 @@ export default function Life() {
   const { tasks, habits, toggleTask, toggleHabitToday } = useAppStore();
   const [activeTab, setActiveTab] = useState<TaskCategory>("fitness");
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getISTISOString().slice(0, 10);
 
   const getTasks = (category: TaskCategory) => tasks.filter(t => t.category === category && (!t.completed || t.completedAt?.startsWith(todayStr)));
   const getHabits = (category: TaskCategory) => habits.filter(h => h.category === category);

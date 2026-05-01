@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, Flame, Trash2, Check } from "lucide-react";
@@ -16,7 +17,7 @@ const computeStreak = (history: string[]) => {
   if (history.length === 0) return 0;
   const set = new Set(history);
   let streak = 0;
-  const cursor = new Date();
+  const cursor = getISTDate();
   while (true) {
     const k = cursor.toISOString().slice(0, 10);
     if (set.has(k)) { streak += 1; cursor.setDate(cursor.getDate() - 1); }

@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAppStore, todayKey } from "@/lib/store";
 import { Flame, Check } from "lucide-react";
@@ -14,7 +15,7 @@ export const HabitsStrip = () => {
     let streak = 0;
 
     // We start looking from today
-    const cursor = new Date();
+    const cursor = getISTDate();
     const todayStr = cursor.toISOString().slice(0, 10);
 
     // If today is not in the set, check if yesterday is.

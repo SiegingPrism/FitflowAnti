@@ -9,7 +9,7 @@
 
 import { format } from "date-fns";
 import type { HealthLog, Task, XPEvent } from "./store";
-import { getPastDays } from "./utils";
+import { getPastDays, getISTDate } from "./utils";
 
 export interface BurnoutInputs {
   healthLogs: HealthLog[];
@@ -100,7 +100,7 @@ function computeXpStreak(history: XPEvent[]): number {
   if (history.length === 0) return 0;
   const days = Array.from(new Set(history.map((e) => e.at.slice(0, 10)))).sort().reverse();
   let streak = 0;
-  const cursor = new Date();
+  const cursor = getISTDate();
 
   // Allow grace if the user hasn't earned XP today yet, but did yesterday
   const expectedToday = format(cursor, "yyyy-MM-dd");
