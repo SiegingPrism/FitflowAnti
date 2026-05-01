@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAppStore, todayKey } from "@/lib/store";
 import { Droplets, Footprints, Activity, Plus } from "lucide-react";
@@ -19,7 +20,7 @@ export const QuickHealth = () => {
   const waterPct = Math.min(100, (log.waterMl / 2500) * 100);
   const stepsPct = Math.min(100, (log.steps / 8000) * 100);
 
-  const hour = new Date().getHours();
+  const hour = getISTDate().getHours();
   let currentSlot: "morning" | "afternoon" | "evening" = "morning";
   if (hour >= 12 && hour < 18) currentSlot = "afternoon";
   if (hour >= 18 || hour < 5) currentSlot = "evening";

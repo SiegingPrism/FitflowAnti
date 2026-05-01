@@ -133,7 +133,8 @@ interface AppState {
 
 // Ensure today uses local time to match UI display
 import { format } from "date-fns";
-const today = () => format(new Date(), "yyyy-MM-dd");
+import { getISTDate, getISTTodayStr, getISTISOString } from "./utils";
+const today = () => getISTTodayStr();
 
 const uid = () => crypto.randomUUID();
 
@@ -179,7 +180,7 @@ export const useAppStore = create<AppState>()(
           reason,
           branch,
           sourceType: source.type,
-          at: new Date().toISOString(),
+          at: getISTISOString(),
         };
         set((s) => ({
           totalXP: s.totalXP + amount,
@@ -217,7 +218,7 @@ export const useAppStore = create<AppState>()(
           const id = uid();
           const task: Task = {
             id,
-            createdAt: new Date().toISOString(),
+            createdAt: getISTISOString(),
             completed: false,
             xpAwarded: false,
             xp,
@@ -251,7 +252,7 @@ export const useAppStore = create<AppState>()(
           }
 
           const willComplete = !task.completed;
-          const completedAt = willComplete ? new Date().toISOString() : undefined;
+          const completedAt = willComplete ? getISTISOString() : undefined;
           const willAwardXp = willComplete && !task.xpAwarded;
 
           // Optimistic UI update
@@ -348,7 +349,7 @@ export const useAppStore = create<AppState>()(
 
         addHabit: (h) => {
           const id = uid();
-          const habit: Habit = { ...h, id, history: [], createdAt: new Date().toISOString() };
+          const habit: Habit = { ...h, id, history: [], createdAt: getISTISOString() };
           set((s) => ({ habits: [...s.habits, habit] }));
           const userId = get().userId;
           if (userId) {
@@ -449,7 +450,7 @@ export const useAppStore = create<AppState>()(
           const id = uid();
           const session: FocusSession = {
             id,
-            completedAt: new Date().toISOString(),
+            completedAt: getISTISOString(),
             ...input,
           };
           set((st) => ({ focusSessions: [session, ...st.focusSessions] }));
@@ -501,7 +502,7 @@ export const useAppStore = create<AppState>()(
         },
         setMood: (mood) => {
           const t = today();
-          const hour = new Date().getHours();
+          const hour = getISTDate().getHours();
           const state = get();
           
           // Determine current slot
@@ -544,7 +545,7 @@ export const useAppStore = create<AppState>()(
         awardFor: award,
 
         completeOnboarding: ({ userName, primaryGoals, dailyFocusTargetMin, starterHabits }) => {
-          const now = new Date().toISOString();
+          const now = getISTISOString();
           const newHabits: Habit[] = starterHabits.map((h) => ({
             ...h,
             id: uid(),
@@ -631,6 +632,10 @@ export const useAppStore = create<AppState>()(
         // ----- cloud lifecycle -----
         bindUser: async (userId) => {
           if (!userId) {
+            if (currentSyncChannel) {
+              currentSyncChannel.unsubscribe();
+              currentSyncChannel = null;
+            }
             set({ userId: null, hydrated: false, ...EMPTY_STATE });
             return;
           }
@@ -640,6 +645,7 @@ export const useAppStore = create<AppState>()(
           set({ userId, hydrated: false });
           await hydrateFromCloud(userId, get, set);
           set({ hydrated: true });
+          setupRealtimeSync(userId, get, set);
         },
         clearLocal: () => set({ userId: null, hydrated: false, ...EMPTY_STATE }),
 
@@ -650,7 +656,7 @@ export const useAppStore = create<AppState>()(
             reason,
             branch: "craft",
             sourceType: "login",
-            at: new Date().toISOString(),
+            at: getISTISOString(),
           };
           set((s) => ({
             totalXP: s.totalXP + amount,
@@ -702,7 +708,114 @@ export const useAppStore = create<AppState>()(
 // Cloud hydration
 // ---------------------------------------------------------------------------
 
+
+let currentSyncChannel: ReturnType<typeof supabase.channel> | null = null;
+
+function setupRealtimeSync(userId: string, get: () => AppState, set: (fn: Partial<AppState> | ((s: AppState) => Partial<AppState>)) => void) {
+  if (currentSyncChannel) {
+    currentSyncChannel.unsubscribe();
+  }
+
+  currentSyncChannel = supabase.channel(`user_data_${userId}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks', filter: `user_id=eq.${userId}` }, (payload) => {
+      // Small delay to ensure we don't overwrite optimistic updates immediately if our own client made them
+      setTimeout(() => {
+        if (payload.eventType === 'INSERT') {
+          set((s: AppState) => {
+            if (s.tasks.some(t => t.id === payload.new.id)) return s;
+            const newTask: Task = {
+              id: payload.new.id, title: payload.new.title, notes: payload.new.notes ?? undefined,
+              priority: payload.new.priority as Priority, category: payload.new.category as TaskCategory,
+              durationMin: payload.new.duration_min, xp: payload.new.xp, dueDate: payload.new.due_date ?? undefined,
+              completed: payload.new.completed, completedAt: payload.new.completed_at ?? undefined,
+              createdAt: payload.new.created_at, xpAwarded: payload.new.xp_awarded ?? false
+            };
+            return { tasks: [newTask, ...s.tasks] };
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          set((s: AppState) => ({
+            tasks: s.tasks.map(t => t.id === payload.new.id ? {
+              ...t, title: payload.new.title, notes: payload.new.notes ?? undefined,
+              priority: payload.new.priority as Priority, category: payload.new.category as TaskCategory,
+              durationMin: payload.new.duration_min, xp: payload.new.xp, dueDate: payload.new.due_date ?? undefined,
+              completed: payload.new.completed, completedAt: payload.new.completed_at ?? undefined,
+              xpAwarded: payload.new.xp_awarded ?? false
+            } : t)
+          }));
+        } else if (payload.eventType === 'DELETE') {
+          set((s: AppState) => ({ tasks: s.tasks.filter(t => t.id !== payload.old.id) }));
+        }
+      }, 500);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'habits', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        if (payload.eventType === 'INSERT') {
+          set((s: AppState) => {
+            if (s.habits.some(h => h.id === payload.new.id)) return s;
+            const newHabit: Habit = {
+              id: payload.new.id, name: payload.new.name, emoji: payload.new.emoji, color: payload.new.color,
+              targetPerWeek: payload.new.target_per_week, category: payload.new.category ?? undefined, history: [], createdAt: payload.new.created_at
+            };
+            return { habits: [newHabit, ...s.habits] };
+          });
+        } else if (payload.eventType === 'DELETE') {
+          set((s: AppState) => ({ habits: s.habits.filter(h => h.id !== payload.old.id) }));
+        }
+      }, 500);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'habit_checkins', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        set((s: AppState) => ({
+          habits: s.habits.map(h => h.id === payload.new.habit_id ? { ...h, history: Array.from(new Set([...h.history, payload.new.date])) } : h)
+        }));
+      }, 500);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'focus_sessions', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        set((s: AppState) => {
+          if (s.focusSessions.some(f => f.id === payload.new.id)) return s;
+          return { focusSessions: [{ id: payload.new.id, taskId: payload.new.task_id ?? undefined, durationMin: payload.new.duration_min, completedAt: payload.new.completed_at }, ...s.focusSessions] };
+        });
+      }, 500);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'health_logs', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          set((s: AppState) => {
+            const exists = s.healthLogs.some(l => l.date === payload.new.date);
+            const newLog: HealthLog = { date: payload.new.date, waterMl: payload.new.water_ml, steps: payload.new.steps, workouts: payload.new.workouts, mood: payload.new.mood ?? undefined, sleepHours: payload.new.sleep_hours ?? undefined };
+            if (exists) {
+              return { healthLogs: s.healthLogs.map(l => l.date === payload.new.date ? newLog : l) };
+            }
+            return { healthLogs: [newLog, ...s.healthLogs] };
+          });
+        }
+      }, 500);
+    })
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'xp_events', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        set((s: AppState) => {
+          if (s.xpHistory.some(x => x.id === payload.new.id)) return s;
+          const newEvent: XPEvent = { id: payload.new.id, amount: payload.new.amount, reason: payload.new.reason, branch: payload.new.branch as Branch, sourceType: payload.new.source_type as XPEvent['sourceType'], at: payload.new.at };
+          return { xpHistory: [newEvent, ...s.xpHistory].slice(0, 200) };
+        });
+      }, 500);
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `user_id=eq.${userId}` }, (payload) => {
+      setTimeout(() => {
+        set((s: AppState) => ({
+          totalXP: payload.new.total_xp ?? s.totalXP,
+          userName: payload.new.display_name ?? s.userName,
+          primaryGoals: (payload.new.primary_goals ?? (payload.new.primary_goal ? [payload.new.primary_goal] : s.primaryGoals)) as PrimaryGoal[],
+          dailyFocusTargetMin: payload.new.daily_focus_target_min ?? s.dailyFocusTargetMin,
+        }));
+      }, 500);
+    })
+    .subscribe();
+}
+
 async function hydrateFromCloud(
+
   userId: string,
   get: () => AppState,
   set: (partial: Partial<AppState>) => void,

@@ -1,3 +1,4 @@
+import { getISTDate, getISTISOString } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { Download, Upload, Trash2, User, Lock, Check, Beaker, ShieldCheck, AlertTriangle, LogOut, Mail, BarChart3, Trophy, Network } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -35,7 +36,7 @@ const SettingsPage = () => {
     const blob = new Blob([JSON.stringify({ tasks, habits, focusSessions, healthLogs, xpHistory, totalXP, userName }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `flowfit-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    a.href = url; a.download = `flowfit-${getISTISOString().slice(0,10)}.json`; a.click();
     URL.revokeObjectURL(url);
     toast.success("Data exported");
   };
@@ -110,53 +111,53 @@ const SettingsPage = () => {
             </div>
           )}
         </FadeIn>
-+
-+        <FadeIn delay={0.03} className="glass-card">
-+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Your Goals</p>
-+          <p className="text-sm text-muted-foreground mb-4">Select up to 2 areas of focus. This helps the AI Coach tailor your experience.</p>
-+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-+            {[
-+              { id: "ship", emoji: "🚀", label: "Ship more" },
-+              { id: "fit", emoji: "💪", label: "Get fit" },
-+              { id: "learn", emoji: "📚", label: "Learn" },
-+              { id: "recover", emoji: "🌿", label: "Recover" },
-+            ].map((g) => {
-+              const active = primaryGoals.includes(g.id as any);
-+              return (
-+                <button
-+                  key={g.id}
-+                  onClick={() => {
-+                    if (active) {
-+                      if (primaryGoals.length > 1) {
-+                        setPrimaryGoals(primaryGoals.filter(i => i !== g.id));
-+                        toast.success("Goal removed");
-+                      } else {
-+                        toast.error("You must have at least one goal.");
-+                      }
-+                    } else {
-+                      if (primaryGoals.length < 2) {
-+                        setPrimaryGoals([...primaryGoals, g.id as any]);
-+                        toast.success("Goal added");
-+                      } else {
-+                        toast.error("Max 2 goals allowed.");
-+                      }
-+                    }
-+                  }}
-+                  className={cn(
-+                    "flex items-center gap-3 p-3 rounded-xl border-2 transition-smooth text-left",
-+                    active ? "border-primary bg-primary/5 shadow-elevated" : "border-border/40 hover:border-primary/20"
-+                  )}
-+                >
-+                  <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center text-lg">{g.emoji}</div>
-+                  <div className="flex-1 min-w-0">
-+                    <p className="font-semibold text-sm truncate">{g.label}</p>
-+                  </div>
-+                  {active && <Check className="w-4 h-4 text-primary" />}
-+                </button>
-+              );
-+            })}
-+          </div>
-+        </FadeIn>
+
+        <FadeIn delay={0.03} className="glass-card">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Your Goals</p>
+          <p className="text-sm text-muted-foreground mb-4">Select up to 2 areas of focus. This helps the AI Coach tailor your experience.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {[
+              { id: "ship", emoji: "🚀", label: "Ship more" },
+              { id: "fit", emoji: "💪", label: "Get fit" },
+              { id: "learn", emoji: "📚", label: "Learn" },
+              { id: "recover", emoji: "🌿", label: "Recover" },
+            ].map((g) => {
+              const active = primaryGoals.includes(g.id as PrimaryGoal);
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    if (active) {
+                      if (primaryGoals.length > 1) {
+                        setPrimaryGoals(primaryGoals.filter(i => i !== g.id));
+                        toast.success("Goal removed");
+                      } else {
+                        toast.error("You must have at least one goal.");
+                      }
+                    } else {
+                      if (primaryGoals.length < 2) {
+                        setPrimaryGoals([...primaryGoals, g.id as PrimaryGoal]);
+                        toast.success("Goal added");
+                      } else {
+                        toast.error("Max 2 goals allowed.");
+                      }
+                    }
+                  }}
+                  className={cn(
+                    "flex items-center gap-3 p-3 rounded-xl border-2 transition-smooth text-left",
+                    active ? "border-primary bg-primary/5 shadow-elevated" : "border-border/40 hover:border-primary/20"
+                  )}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center text-lg">{g.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">{g.label}</p>
+                  </div>
+                  {active && <Check className="w-4 h-4 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
+        </FadeIn>
 
         <FadeIn delay={0.05} className="glass-card">
           <div className="flex items-center justify-between mb-3">

@@ -1,3 +1,4 @@
+import { getISTTodayStr } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Clock, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,7 +16,7 @@ const priorityColor: Record<Priority, string> = {
 export const TodayTasks = () => {
   const tasks = useAppStore((s) => s.tasks);
   const toggleTask = useAppStore((s) => s.toggleTask);
-  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const todayStr = getISTTodayStr();
   const todays = tasks.filter((t) => !t.dueDate || t.dueDate.startsWith(todayStr)).slice(0, 6);
   const done = todays.filter((t) => t.completed).length;
 

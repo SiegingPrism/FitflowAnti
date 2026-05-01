@@ -1,3 +1,4 @@
+import { getISTDate } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Clock, Zap } from "lucide-react";
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, isToday, startOfMonth, startOfWeek, subMonths } from "date-fns";
@@ -9,8 +10,8 @@ import { cn } from "@/lib/utils";
 
 const CalendarPage = () => {
   const tasks = useAppStore((s) => s.tasks);
-  const [cursor, setCursor] = useState(new Date());
-  const [selected, setSelected] = useState(new Date());
+  const [cursor, setCursor] = useState(getISTDate());
+  const [selected, setSelected] = useState(getISTDate());
 
   const days = useMemo(() => {
     const start = startOfWeek(startOfMonth(cursor));
@@ -41,7 +42,7 @@ const CalendarPage = () => {
             <h2 className="text-2xl font-display font-bold">{format(cursor, "MMMM yyyy")}</h2>
             <div className="flex gap-1">
               <button onClick={() => setCursor(subMonths(cursor, 1))} className="w-9 h-9 rounded-lg glass hover:bg-primary/10 transition-smooth flex items-center justify-center"><ChevronLeft className="w-4 h-4" /></button>
-              <button onClick={() => setCursor(new Date())} className="px-3 h-9 rounded-lg glass hover:bg-primary/10 transition-smooth text-sm font-medium">Today</button>
+              <button onClick={() => setCursor(getISTDate())} className="px-3 h-9 rounded-lg glass hover:bg-primary/10 transition-smooth text-sm font-medium">Today</button>
               <button onClick={() => setCursor(addMonths(cursor, 1))} className="w-9 h-9 rounded-lg glass hover:bg-primary/10 transition-smooth flex items-center justify-center"><ChevronRight className="w-4 h-4" /></button>
             </div>
           </div>

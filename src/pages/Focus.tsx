@@ -1,3 +1,4 @@
+import { getISTDate, getISTISOString } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Play, Pause, RotateCcw, Coffee, Brain, Check } from "lucide-react";
@@ -31,7 +32,7 @@ const FocusPage = () => {
   const pct = ((total - secondsLeft) / total) * 100;
 
   useEffect(() => {
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = getISTISOString().slice(0, 10);
     setCompletedToday(focusSessions.filter((s) => s.completedAt.startsWith(todayStr)).length);
   }, [focusSessions]);
 

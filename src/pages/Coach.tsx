@@ -1,3 +1,4 @@
+import { getISTTodayStr } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -30,7 +31,7 @@ interface PlanDay { day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun"; 
 interface WeeklyPlan { theme: string; rationale: string; days: PlanDay[]; }
 
 const buildSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
-  const todayKey = format(new Date(), "yyyy-MM-dd");
+  const todayKey = getISTTodayStr();
   const last7 = getPastDays(7);
 
   const completionByHour = new Array(24).fill(0);
