@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, type PrimaryGoal } from "@/lib/store";
 import { isThemeUnlocked, THEMES, type Theme, verifyThemeApplied, type ThemeHealthReport } from "@/lib/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { levelFromXp } from "@/lib/gamification";

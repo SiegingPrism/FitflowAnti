@@ -69,7 +69,7 @@ const buildPlanSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
     .map((x) => x.h);
 
   return {
-    primaryGoal: state.primaryGoal,
+    primaryGoals: state.primaryGoals,
     dailyFocusTargetMin: state.dailyFocusTargetMin,
     openTasks: state.tasks.filter((t) => !t.completed).map((t) => ({
       title: t.title, priority: t.priority, category: t.category, durationMin: t.durationMin, dueDate: t.dueDate,
