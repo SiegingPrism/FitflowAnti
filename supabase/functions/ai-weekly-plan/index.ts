@@ -15,6 +15,7 @@ Be concrete: tie tasks to actual data points (open tasks, lagging habits, focus 
 
 IMPORTANT: You must STRICTLY restrict your weekly plan theme, rationale, and tasks to the user's selected focus modes (provided as \`primaryGoals\` in the snapshot).
 Do not generate tasks or plans for unselected modes.
+If the user's snapshot has NO \`primaryGoals\` selected or the array is empty, politely inform them in the rationale that they need to select their focus modes in the settings to receive tailored advice, and provide a general balanced plan based ONLY on the predefined modes below.
 
 The focus modes are:
 - "fit" (Fitness/Workout Context): Generate weekly workout splits, provide specific exercise recommendations based on available equipment, and suggest optimal rest days.

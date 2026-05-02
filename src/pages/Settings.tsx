@@ -127,26 +127,20 @@ const SettingsPage = () => {
                 <button
                   key={g.id}
                   onClick={() => {
-                    let newGoals = [...primaryGoals];
                     if (active) {
                       if (primaryGoals.length > 1) {
-                        newGoals = primaryGoals.filter(i => i !== g.id);
+                        setPrimaryGoals(primaryGoals.filter(i => i !== g.id));
+                        toast.success("Goal removed");
                       } else {
                         toast.error("You must have at least one goal.");
-                        return;
                       }
                     } else {
                       if (primaryGoals.length < 2) {
-                        newGoals = [...primaryGoals, g.id as PrimaryGoal];
+                        setPrimaryGoals([...primaryGoals, g.id as PrimaryGoal]);
+                        toast.success("Goal added");
                       } else {
                         toast.error("Max 2 goals allowed.");
-                        return;
                       }
-                    }
-
-                    if (window.confirm("Changing your focus modes will reset your dashboard view and AI Coach context. Proceed?")) {
-                      setPrimaryGoals(newGoals);
-                      toast.success(active ? "Goal removed" : "Goal added");
                     }
                   }}
                   className={cn(

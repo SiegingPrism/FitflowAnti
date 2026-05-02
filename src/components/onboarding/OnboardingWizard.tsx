@@ -61,7 +61,7 @@ export const OnboardingWizard = () => {
   const canNext = () => {
     if (step === 0) return true;
     if (step === 1) return name.trim().length > 0;
-    if (step === 2) return goals.length >= 1 && goals.length <= 2;
+    if (step === 2) return goals.length >= 2;
     if (step === 3) return picked.length >= 2 && picked.length <= 3;
     if (step === 4) return true;
     return false;
@@ -199,8 +199,8 @@ const GoalStep = ({ goals, setGoals }: { goals: PrimaryGoal[]; setGoals: (gs: Pr
   return (
   <div>
     <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Step 2 of 4</p>
-    <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">Pick 1 or 2 primary goals</h2>
-    <p className="text-sm text-muted-foreground mt-2">These shape the starter habits and how the Coach prioritizes. <span className="font-semibold text-foreground">Picked: {goals.length} (Max 2)</span></p>
+    <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">Pick 2 primary goals</h2>
+    <p className="text-sm text-muted-foreground mt-2">These shape the starter habits and how the Coach prioritizes. <span className="font-semibold text-foreground">Picked: {goals.length}/2</span></p>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5">
       {GOALS.map((g) => {
         const active = goals.includes(g.id);
