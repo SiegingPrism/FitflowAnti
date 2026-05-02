@@ -13,22 +13,17 @@ import { motion } from "framer-motion";
 import { Lock, Sparkles, Check } from "lucide-react";
 import { useMemo } from "react";
 
-const BRANCHES: Branch[] = ["focus", "health", "learning", "craft"];
+const BRANCHES: Branch[] = ["focus", "work", "health", "fitness", "mental_health", "learning", "study", "craft", "other"];
 
 const SkillTree = () => {
   const xpHistory = useAppStore((s) => s.xpHistory);
 
   const xpByBranch = useMemo(() => {
-    const totals: Record<Branch, number> = { focus: 0, health: 0, learning: 0, craft: 0 };
+    const totals: Record<Branch, number> = { focus: 0, health: 0, learning: 0, craft: 0, fitness: 0, study: 0, mental_health: 0, work: 0, other: 0 };
     for (const e of xpHistory) {
-      let branch = e.branch as string;
-      if (branch === "work") branch = "focus";
-      if (branch === "fitness" || branch === "mental_health") branch = "health";
-      if (branch === "study") branch = "learning";
-      if (branch === "other") branch = "craft";
-      
-      if (totals[branch as Branch] !== undefined) {
-        totals[branch as Branch] += e.amount;
+      const branch = e.branch as Branch;
+      if (totals[branch] !== undefined) {
+        totals[branch] += e.amount;
       }
     }
     return totals;

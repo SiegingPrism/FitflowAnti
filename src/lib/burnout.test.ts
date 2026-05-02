@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { computeBurnout } from "./burnout";
-import type { HealthLog, Task, XPEvent } from "./store";
 
 describe("computeBurnout", () => {
   const FIXED_DATE = new Date("2024-05-01T12:00:00Z");
@@ -31,7 +30,7 @@ describe("computeBurnout", () => {
   it("should handle empty tasks and xpHistory", () => {
     const result = computeBurnout({
       healthLogs: [
-        { id: "1", userId: "u1", date: "2024-05-01", mood: 4, sleepHours: 8, createdAt: "2024-05-01T12:00:00Z" }
+        { date: "2024-05-01", waterMl: 0, steps: 0, workouts: 0, mood: 4, sleepHours: 8 }
       ],
       tasks: [],
       xpHistory: [],
@@ -44,12 +43,12 @@ describe("computeBurnout", () => {
   it("should ignore entries lacking target fields", () => {
     const result = computeBurnout({
       healthLogs: [
-        { id: "1", userId: "u1", date: "2024-05-01", createdAt: "2024-05-01T12:00:00Z" }, // missing mood and sleepHours
-        { id: "2", userId: "u1", date: "2024-04-30", mood: 5, createdAt: "2024-04-30T12:00:00Z" }, // missing sleepHours
-        { id: "3", userId: "u1", date: "2024-04-29", sleepHours: 7.5, createdAt: "2024-04-29T12:00:00Z" }, // missing mood
+        { date: "2024-05-01", waterMl: 0, steps: 0, workouts: 0 }, // missing mood and sleepHours
+        { date: "2024-04-30", waterMl: 0, steps: 0, workouts: 0, mood: 5 }, // missing sleepHours
+        { date: "2024-04-29", waterMl: 0, steps: 0, workouts: 0, sleepHours: 7.5 }, // missing mood
       ],
       tasks: [
-        { id: "t1", userId: "u1", title: "Incomplete task", priority: "low", category: "work", xpConfig: { base: 10 }, createdAt: "2024-05-01T12:00:00Z" } // missing completedAt
+        { id: "t1", title: "Incomplete task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: false, createdAt: "2024-05-01T12:00:00Z" } // missing completedAt
       ],
       xpHistory: [],
     });
@@ -67,30 +66,30 @@ describe("computeBurnout", () => {
     const priorDate = "2024-04-24T12:00:00Z"; // Previous 7 days range
     const result = computeBurnout({
       healthLogs: [
-        // Extremely low mood (negative, not normally possible but tests the bound)
-        { id: "h1", userId: "u1", date: "2024-05-01", mood: -5, createdAt: "2024-05-01T12:00:00Z" },
+        // Extremely low mood (1 is lowest allowed type)
+        { date: "2024-05-01", waterMl: 0, steps: 0, workouts: 0, mood: 1 },
         // Zero sleep
-        { id: "h2", userId: "u1", date: "2024-04-30", sleepHours: 0, createdAt: "2024-04-30T12:00:00Z" }
+        { date: "2024-04-30", waterMl: 0, steps: 0, workouts: 0, sleepHours: 0 }
       ],
       tasks: [
-        { id: "t1", userId: "u1", title: "Past task 1", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
-        { id: "t2", userId: "u1", title: "Past task 2", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
-        { id: "t3", userId: "u1", title: "Past task 3", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" }
+        { id: "t1", title: "Past task 1", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
+        { id: "t2", title: "Past task 2", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
+        { id: "t3", title: "Past task 3", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" }
         // 0 recent completions, so drop is 100% (3 -> 0)
       ],
       xpHistory: Array.from({ length: 40 }).map((_, i) => ({
         // Massive streak > 14 days (creating a 40-day streak)
         id: `xp${i}`,
-        userId: "u1",
-        taskId: "t1",
         amount: 10,
         reason: "task_completion",
+        branch: "focus",
+        sourceType: "task",
         at: new Date(FIXED_DATE.getTime() - i * 24 * 60 * 60 * 1000).toISOString()
       }))
     });
 
     // Verify all signals are clamped at exactly 1.0 (maximum risk)
-    expect(result.signals.moodTrend).toBe(1); // Normally (5 - (-5)) / 4 = 2.5 -> clamped to 1
+    expect(result.signals.moodTrend).toBeCloseTo(1); // Normally (5 - 1) / 4 = 1
     expect(result.signals.sleepDeficit).toBe(1); // Normally (7.5 - 0) / 1.5 = 5 -> clamped to 1
     expect(result.signals.completionDrop).toBe(1); // Drop is 1.0. 1.0 / 0.4 = 2.5 -> clamped to 1
     expect(result.signals.streakStrain).toBe(1); // Normally (40 - 14) / 14 ≈ 1.85 -> clamped to 1
@@ -106,26 +105,26 @@ describe("computeBurnout", () => {
     const result = computeBurnout({
       healthLogs: [
         // Exceptionally high mood
-        { id: "h1", userId: "u1", date: "2024-05-01", mood: 10, createdAt: "2024-05-01T12:00:00Z" },
+        { date: "2024-05-01", waterMl: 0, steps: 0, workouts: 0, mood: 5 },
         // Lots of sleep
-        { id: "h2", userId: "u1", date: "2024-04-30", sleepHours: 24, createdAt: "2024-04-30T12:00:00Z" }
+        { date: "2024-04-30", waterMl: 0, steps: 0, workouts: 0, sleepHours: 24 }
       ],
       tasks: [
         // Baseline tasks
-        { id: "t1", userId: "u1", title: "Past task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
-        { id: "t2", userId: "u1", title: "Past task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
-        { id: "t3", userId: "u1", title: "Past task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
+        { id: "t1", title: "Past task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
+        { id: "t2", title: "Past task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
+        { id: "t3", title: "Past task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: priorDate, createdAt: "2024-04-20T12:00:00Z" },
         // Increase in recent tasks (negative drop)
-        { id: "t4", userId: "u1", title: "Recent task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
-        { id: "t5", userId: "u1", title: "Recent task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
-        { id: "t6", userId: "u1", title: "Recent task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
-        { id: "t7", userId: "u1", title: "Recent task", priority: "low", category: "work", xpConfig: { base: 10 }, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" }
+        { id: "t4", title: "Recent task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
+        { id: "t5", title: "Recent task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
+        { id: "t6", title: "Recent task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" },
+        { id: "t7", title: "Recent task", priority: "low", category: "work", durationMin: 0, xp: 10, completed: true, completedAt: recentDate, createdAt: "2024-05-01T12:00:00Z" }
       ],
       xpHistory: [] // 0 streak
     });
 
     // Verify all signals are clamped at exactly 0 (minimum risk)
-    expect(result.signals.moodTrend).toBe(0); // Normally (5 - 10) / 4 = -1.25 -> clamped to 0
+    expect(result.signals.moodTrend).toBe(0); // Normally (5 - 5) / 4 = 0 -> clamped to 0
     expect(result.signals.sleepDeficit).toBe(0); // Normally (7.5 - 24) / 1.5 = -11 -> clamped to 0
     expect(result.signals.completionDrop).toBe(0); // Drop is negative -> clamped to 0
     expect(result.signals.streakStrain).toBe(0); // Normally (0 - 14) / 14 = -1 -> clamped to 0

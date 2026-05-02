@@ -4,14 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   type ActionSource,
   type Branch,
+  type TaskCategory,
   branchOf,
   computeXp,
   currentStreak,
   levelFromXp,
 } from "./gamification";
 
+export type { TaskCategory } from "./gamification";
+
 export type Priority = "low" | "medium" | "high" | "urgent";
-export type TaskCategory = "work" | "personal" | "health" | "learning" | "other";
+
 export type PrimaryGoal = "ship" | "fit" | "learn" | "recover";
 
 export interface Task {
@@ -85,7 +88,7 @@ interface AppState {
   userName: string;
 
   onboardedAt?: string;
-  primaryGoals: PrimaryGoal[];
+  primaryGoal?: PrimaryGoal;
   dailyFocusTargetMin: number;
 
   // Tasks
@@ -112,7 +115,7 @@ interface AppState {
   // Onboarding
   completeOnboarding: (data: {
     userName: string;
-    primaryGoals: PrimaryGoal[];
+    primaryGoal: PrimaryGoal;
     dailyFocusTargetMin: number;
     starterHabits: Array<Omit<Habit, "id" | "createdAt" | "history">>;
   }) => void;
@@ -121,7 +124,6 @@ interface AppState {
   // User
   setUserName: (name: string) => void;
   setDailyFocusTarget: (min: number) => void;
-  setPrimaryGoals: (goals: PrimaryGoal[]) => void;
 
   // Cloud lifecycle
   bindUser: (userId: string | null) => Promise<void>;
@@ -151,7 +153,7 @@ const EMPTY_STATE = {
   userName: "Friend",
   dailyFocusTargetMin: 50,
   onboardedAt: undefined as string | undefined,
-  primaryGoals: [] as PrimaryGoal[],
+  primaryGoal: undefined as PrimaryGoal | undefined,
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
@@ -279,7 +281,7 @@ export const useAppStore = create<AppState>()(
             try {
               let res: { success?: boolean; message?: string } | null = null;
               if (userId) {
-                const { data, error } = await supabase.rpc('complete_task', { 
+                const { data, error } = await supabase.rpc('complete_task', {
                   p_task_id: id,
                   p_title: task.title,
                   p_xp: task.xp,
@@ -287,17 +289,17 @@ export const useAppStore = create<AppState>()(
                   p_category: task.category
                 });
                 res = data as { success?: boolean; message?: string } | null;
-                
+
                 if (error) {
-                   console.error("[Task] RPC Error:", error);
-                   throw new Error(error.message);
+                  console.error("[Task] RPC Error:", error);
+                  throw new Error(error.message);
                 }
                 if (res && res.success === false) {
-                   console.warn("[Task] RPC Success: false. Message:", res.message);
-                   throw new Error(res.message);
+                  console.warn("[Task] RPC Success: false. Message:", res.message);
+                  throw new Error(res.message);
                 }
               }
-              
+
               // res is only defined if we hit the cloud.
               const alreadyDoneCloud = userId ? (res && (res.message === 'already_done' || res.message === 'already_awarded')) : false;
 
@@ -305,7 +307,7 @@ export const useAppStore = create<AppState>()(
                 award(
                   { type: "task", priority: task.priority, category: task.category },
                   `Completed: ${task.title}`,
-                  !!userId 
+                  !!userId
                 );
               }
             } catch (e) {
@@ -389,61 +391,61 @@ export const useAppStore = create<AppState>()(
           }));
 
           if (userId) {
-             try {
-                const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                const res = data as { success?: boolean; message?: string } | null;
+            try {
+              const { data, error } = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+              const res = data as { success?: boolean; message?: string } | null;
 
-                // If error is 'Already checked in', we don't need to roll back,
-                // as the local state and server state are now in sync.
-                const alreadyDone = res && res.message === 'already_done';
+              // If error is 'Already checked in', we don't need to roll back,
+              // as the local state and server state are now in sync.
+              const alreadyDone = res && res.message === 'already_done';
 
-                if (error || (res && res.success === false)) {
-                   // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
-                   const isMissing = error && (error as { code?: string }).code === '23503';
-                   if (isMissing) {
-                      console.log("[Habit] Habit missing from cloud, self-healing...");
-                      await supabase.from("habits").insert({
-                        id,
-                        user_id: userId,
-                        name: habit.name,
-                        emoji: habit.emoji,
-                        color: habit.color,
-                        target_per_week: habit.targetPerWeek,
-                        category: habit.category ?? null,
-                      });
-                      // Retry check-in
-                      const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                      if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
-                   }
-
-                   console.error("[habit checkin] failed:", error || res?.message);
-                   // Rollback optimistic update
-                   set((s) => ({
-                     habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
-                   }));
-                   return;
+              if (error || (res && res.success === false)) {
+                // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
+                const isMissing = error && (error as { code?: string }).code === '23503';
+                if (isMissing) {
+                  console.log("[Habit] Habit missing from cloud, self-healing...");
+                  await supabase.from("habits").insert({
+                    id,
+                    user_id: userId,
+                    name: habit.name,
+                    emoji: habit.emoji,
+                    color: habit.color,
+                    target_per_week: habit.targetPerWeek,
+                    category: habit.category ?? null,
+                  });
+                  // Retry check-in
+                  const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
+                  if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
                 }
 
-                // Only award XP if this is the FIRST time today
-                if (!alreadyDone) {
-                  award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
-                  console.log(`[Habit] XP Awarded for ${habit.name}`);
-                } else {
-                  console.log("[Habit] Already done today, skipping XP award.");
-                }
-             } catch (e) {
-               console.error("[habit checkin] network error:", e);
-               // Rollback on network error
-               set((s) => ({
-                 habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
-               }));
-             }
+                console.error("[habit checkin] failed:", error || res?.message);
+                // Rollback optimistic update
+                set((s) => ({
+                  habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
+                }));
+                return;
+              }
+
+              // Only award XP if this is the FIRST time today
+              if (!alreadyDone) {
+                award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, !!userId);
+                console.log(`[Habit] XP Awarded for ${habit.name}`);
+              } else {
+                console.log("[Habit] Already done today, skipping XP award.");
+              }
+            } catch (e) {
+              console.error("[habit checkin] network error:", e);
+              // Rollback on network error
+              set((s) => ({
+                habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
+              }));
+            }
           } else {
-             // Offline mode
-             award(
-               { type: "habit", emoji: habit.emoji, category: habit.category },
-               `Habit: ${habit.name}`
-             );
+            // Offline mode
+            award(
+              { type: "habit", emoji: habit.emoji, category: habit.category },
+              `Habit: ${habit.name}`
+            );
           }
         },
         removeHabit: (id) => {
@@ -510,24 +512,24 @@ export const useAppStore = create<AppState>()(
           const t = today();
           const hour = getISTDate().getHours();
           const state = get();
-          
+
           // Determine current slot
           let slot: TimeSlot = "morning";
           if (hour >= 12 && hour < 18) slot = "afternoon";
           if (hour >= 18 || hour < 5) slot = "evening";
 
           const daySlots = state.claimedSlots[t] || [];
-          
+
           // Check if slot is already claimed
           if (daySlots.includes(slot)) {
             // If slot is claimed, we can only claim a mood if we have a "pending focus session bonus"
             // We calculate this by checking: count(focus today) > count(bonus mood events today)
             const focusToday = state.focusSessions.filter(s => s.completedAt.startsWith(t)).length;
             const moodEventsToday = state.xpHistory.filter(e => e.at.startsWith(t) && e.reason.includes("Mood logged")).length;
-            
+
             // We allow 3 base slots (M/A/E). If total mood events >= 3, it means we must use a focus bonus.
             const baseSlotsClaimed = daySlots.length;
-            const extraNeeded = moodEventsToday + 1 - 3; 
+            const extraNeeded = moodEventsToday + 1 - 3;
 
             if (extraNeeded > 0 && moodEventsToday >= focusToday + 3) {
               console.log("[XP] Mood limit reached. Complete more focus sessions for extra slots.");
@@ -539,7 +541,7 @@ export const useAppStore = create<AppState>()(
           // Grant XP and mark slot as claimed
           get().logHealth({ mood });
           award({ type: "health", kind: "mood" }, `Mood logged (${slot}): ${mood}/5`);
-          
+
           set((s) => ({
             claimedSlots: {
               ...s.claimedSlots,
@@ -560,7 +562,7 @@ export const useAppStore = create<AppState>()(
           }));
           set((s) => ({
             userName,
-            primaryGoals,
+            primaryGoal,
             dailyFocusTargetMin,
             onboardedAt: now,
             habits: [...newHabits, ...s.habits],
@@ -574,8 +576,7 @@ export const useAppStore = create<AppState>()(
                 .from("profiles")
                 .update({
                   display_name: userName,
-                  primary_goals: primaryGoals,
-                  primary_goal: primaryGoals[0] || null,
+                  primary_goal: primaryGoal,
                   daily_focus_target_min: dailyFocusTargetMin,
                   onboarded_at: now,
                 })
@@ -615,21 +616,6 @@ export const useAppStore = create<AppState>()(
               supabase
                 .from("profiles")
                 .update({ daily_focus_target_min: min })
-                .eq("user_id", userId),
-            );
-          }
-        },
-        setPrimaryGoals: (goals) => {
-          set({ primaryGoals: goals });
-          const userId = get().userId;
-          if (userId) {
-            safe(
-              supabase
-                .from("profiles")
-                .update({ 
-                  primary_goals: goals,
-                  primary_goal: goals[0] || null
-                })
                 .eq("user_id", userId),
             );
           }
@@ -702,7 +688,7 @@ export const useAppStore = create<AppState>()(
         totalXP: s.totalXP,
         userName: s.userName,
         onboardedAt: s.onboardedAt,
-        primaryGoals: s.primaryGoals,
+        primaryGoal: s.primaryGoal,
         dailyFocusTargetMin: s.dailyFocusTargetMin,
         claimedSlots: s.claimedSlots,
       }),
@@ -893,7 +879,7 @@ async function hydrateFromCloud(
         completed: t.completed,
         completedAt: t.completed_at ?? undefined,
         createdAt: t.created_at,
-        xpAwarded: t.xp_awarded ?? false,
+        xpAwarded: false,
       })),
       habits: (habitsRes.data ?? []).map((h) => ({
         id: h.id,
@@ -929,7 +915,7 @@ async function hydrateFromCloud(
       })),
       totalXP: profile?.total_xp ?? 0,
       userName: profile?.display_name ?? "Friend",
-      primaryGoals: (profile?.primary_goals ?? (profile?.primary_goal ? [profile.primary_goal] : [])) as PrimaryGoal[],
+      primaryGoal: (profile?.primary_goal ?? undefined) as PrimaryGoal | undefined,
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
       onboardedAt: profile?.onboarded_at ?? undefined,
       hydrated: true, // Ensure hydration flag is set even if some data is partial
@@ -951,8 +937,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
       .upsert({
         user_id: userId,
         display_name: local.userName,
-        primary_goals: local.primaryGoals,
-        primary_goal: local.primaryGoals[0] || null,
+        primary_goal: local.primaryGoal ?? null,
         daily_focus_target_min: local.dailyFocusTargetMin,
         onboarded_at: local.onboardedAt ?? null,
         total_xp: local.totalXP,
@@ -1049,7 +1034,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
       const r = res as { error?: Error };
       if (r.error) console.error("[migration] Table insert failed:", r.error);
     })));
-    
+
     console.log("[migration] Local data successfully pushed to cloud.");
   } catch (err) {
     console.error("[migration] CRITICAL failure:", err);
