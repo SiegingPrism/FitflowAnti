@@ -4,12 +4,9 @@ import { useAppStore, todayKey } from "@/lib/store";
 import { Flame, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { TaskCategory } from "@/lib/store";
-
 export const HabitsStrip = () => {
   const habits = useAppStore((s) => s.habits);
   const toggle = useAppStore((s) => s.toggleHabitToday);
-  const primaryGoals = useAppStore((s) => s.primaryGoals);
   const today = todayKey();
 
   const computeStreak = (history: string[]) => {
@@ -41,14 +38,6 @@ export const HabitsStrip = () => {
     return streak;
   };
 
-  const allowedCategories = new Set<TaskCategory | undefined>([undefined, "other"]);
-  if (primaryGoals.includes("ship")) allowedCategories.add("work");
-  if (primaryGoals.includes("fit")) allowedCategories.add("health");
-  if (primaryGoals.includes("learn")) allowedCategories.add("learning");
-  if (primaryGoals.includes("recover")) allowedCategories.add("health");
-
-  const visibleHabits = habits.filter(h => allowedCategories.has(h.category));
-
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -67,10 +56,10 @@ export const HabitsStrip = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">
-        {visibleHabits.length === 0 && (
+        {habits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-6">No habits yet. Add one in the Habits tab.</p>
         )}
-        {visibleHabits.map((h) => {
+        {habits.map((h) => {
           const done = h.history.includes(today);
           const streak = computeStreak(h.history);
           return (

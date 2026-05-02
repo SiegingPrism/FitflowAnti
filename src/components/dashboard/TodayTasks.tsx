@@ -2,7 +2,7 @@ import { getISTTodayStr } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Clock, Zap } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAppStore, type Task, type Priority, type TaskCategory } from "@/lib/store";
+import { useAppStore, type Task, type Priority } from "@/lib/store";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -16,21 +16,8 @@ const priorityColor: Record<Priority, string> = {
 export const TodayTasks = () => {
   const tasks = useAppStore((s) => s.tasks);
   const toggleTask = useAppStore((s) => s.toggleTask);
-  const primaryGoals = useAppStore((s) => s.primaryGoals);
-
   const todayStr = getISTTodayStr();
-
-  const allowedCategories = new Set<TaskCategory>(["other"]);
-  if (primaryGoals.includes("ship")) allowedCategories.add("work");
-  if (primaryGoals.includes("fit")) allowedCategories.add("health");
-  if (primaryGoals.includes("learn")) allowedCategories.add("learning");
-  if (primaryGoals.includes("recover")) allowedCategories.add("health");
-
-  const todays = tasks
-    .filter((t) => !t.dueDate || t.dueDate.startsWith(todayStr))
-    .filter((t) => allowedCategories.has(t.category))
-    .slice(0, 6);
-
+  const todays = tasks.filter((t) => !t.dueDate || t.dueDate.startsWith(todayStr)).slice(0, 6);
   const done = todays.filter((t) => t.completed).length;
 
   return (
