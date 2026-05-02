@@ -45,6 +45,7 @@ const buildSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
   const todayHealth = state.healthLogs.find((l) => l.date === todayKey);
 
   return {
+    primaryGoals: state.primaryGoals,
     today: todayKey,
     openTasks: state.tasks.filter((t) => !t.completed).slice(0, 10).map((t) => ({ title: t.title, priority: t.priority, category: t.category, durationMin: t.durationMin })),
     completedLast7Days: state.tasks.filter((t) => t.completedAt && last7.includes(t.completedAt.slice(0, 10))).length,
