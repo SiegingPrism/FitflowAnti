@@ -135,7 +135,7 @@ const CoachPage = () => {
       toast.success("Coach updated with fresh AI insights");
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
-      if (msg.includes("VITE_GEMINI_API_KEY")) toast.error("Please add VITE_GEMINI_API_KEY to your .env file.");
+      if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
       else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("AI unavailable, showing local insights.");
       console.error(e);
@@ -152,7 +152,7 @@ const CoachPage = () => {
       toast.success(`Plan ready: ${result.theme}`);
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
-      if (msg.includes("VITE_GEMINI_API_KEY")) toast.error("Please add VITE_GEMINI_API_KEY to your .env file.");
+      if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
       else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("Couldn't generate plan. Try again.");
       console.error(e);

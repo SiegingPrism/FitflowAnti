@@ -21,4 +21,5 @@ export default defineConfig(({ mode }) => ({
   build: {
     chunkSizeWarningLimit: 1500,
   },
+  envPrefix: ['VITE_', 'GEMINI_'],
 }));

@@ -1,9 +1,9 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 
 const getGeminiClient = () => {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  const apiKey = import.meta.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("VITE_GEMINI_API_KEY is not set in your .env file.");
+    throw new Error("GEMINI_API_KEY is not set in your environment.");
   }
   return new GoogleGenerativeAI(apiKey);
 };
