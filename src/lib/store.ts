@@ -156,12 +156,15 @@ const EMPTY_STATE = {
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
 // Accepts a Promise OR a Supabase query builder (which is thenable).
-const safe = (p: PromiseLike<unknown> | any): void => {
-  Promise.resolve(p).then(res => {
-    if (res && res.error) {
-      console.error("[cloud sync error]", res.error);
-    }
-  }).catch((err) => console.error("[cloud sync catch]", err));
+const safe = (p: any): void => {
+  // If p is a Supabase builder, it is thenable.
+  if (p && typeof p.then === 'function') {
+    p.then((res: any) => {
+      if (res && res.error) {
+        console.error("[cloud sync error]", res.error);
+      }
+    }).catch((err: any) => console.error("[cloud sync catch]", err));
+  }
 };
 
 export const useAppStore = create<AppState>()(
