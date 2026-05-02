@@ -245,7 +245,6 @@ export const useAppStore = create<AppState>()(
                 duration_min: task.durationMin,
                 xp: task.xp,
                 due_date: task.dueDate ?? null,
-                xp_awarded: false,
               }),
             );
           }
@@ -982,7 +981,6 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         due_date: t.dueDate ?? null,
         completed: t.completed,
         completed_at: t.completedAt ?? null,
-        xp_awarded: t.xpAwarded ?? false,
       }));
       await supabase.from("tasks").insert(rows);
     }
