@@ -159,14 +159,13 @@ const EMPTY_STATE = {
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
 // Accepts a Promise OR a Supabase query builder (which is thenable).
-const safe = (p: any): void => {
-  // If p is a Supabase builder, it is thenable.
-  if (p && typeof p.then === 'function') {
-    p.then((res: any) => {
+const safe = <T extends { error?: unknown }>(p: Promise<T> | unknown): void => {
+  if (p && typeof (p as Promise<T>).then === 'function') {
+    (p as Promise<T>).then((res) => {
       if (res && res.error) {
         console.error("[cloud sync error]", res.error);
       }
-    }).catch((err: any) => console.error("[cloud sync catch]", err));
+    }).catch((err: unknown) => console.error("[cloud sync catch]", err));
   }
 };
 

@@ -8,7 +8,7 @@ const getGeminiClient = () => {
   return new GoogleGenerativeAI(apiKey);
 };
 
-export const generateCoachInsights = async (snapshot: any) => {
+export const generateCoachInsights = async (snapshot: unknown) => {
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
@@ -57,7 +57,7 @@ export const generateCoachInsights = async (snapshot: any) => {
   return JSON.parse(result.response.text());
 };
 
-export const generateWeeklyPlan = async (snapshot: any) => {
+export const generateWeeklyPlan = async (snapshot: unknown) => {
   const genAI = getGeminiClient();
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
