@@ -1,4 +1,4 @@
-import { getISTDate } from "@/lib/utils";
+import { getISTDate, getISTTodayStr } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Search, Trash2, Calendar as CalIcon, Check, Clock, Zap, Filter } from "lucide-react";
@@ -40,12 +40,33 @@ const TasksPage = () => {
     });
   }, [tasks, search, filterPriority, filterCategory]);
 
-  const open = filtered.filter((t) => !t.completed);
+  const todayStr = getISTTodayStr();
+  const overdue = filtered.filter((t) => !t.completed && t.dueDate && t.dueDate < todayStr);
+  const open = filtered.filter((t) => !t.completed && (!t.dueDate || t.dueDate >= todayStr));
   const done = filtered.filter((t) => t.completed);
 
   return (
     <AppShell>
       <TopBar eyebrow="Plan" title="Tasks" subtitle="Capture, prioritize, and ship." />
+
+      {overdue.length > 0 && (
+        <FadeIn className="glass-card mb-5 border-2 border-destructive/40 bg-destructive/5 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-destructive" />
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-destructive/15 text-destructive flex items-center justify-center">
+              <Zap className="w-4 h-4" />
+            </div>
+            <h2 className="text-lg font-bold text-destructive">Action Required (Overdue)</h2>
+          </div>
+          <ul className="space-y-2">
+            <AnimatePresence initial={false}>
+              {overdue.map((t) => (
+                <TaskRow key={t.id} task={t} onToggle={() => toggleTask(t.id)} onRemove={() => removeTask(t.id)} isOverdue />
+              ))}
+            </AnimatePresence>
+          </ul>
+        </FadeIn>
+      )}
 
       <FadeIn className="glass-card mb-5 flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
@@ -113,13 +134,16 @@ const TasksPage = () => {
   );
 };
 
-const TaskRow = ({ task, onToggle, onRemove }: { task: Task; onToggle: () => void; onRemove: () => void }) => (
+const TaskRow = ({ task, onToggle, onRemove, isOverdue }: { task: Task; onToggle: () => void; onRemove: () => void; isOverdue?: boolean }) => (
   <motion.li
     layout
     initial={{ opacity: 0, x: -10 }}
     animate={{ opacity: 1, x: 0 }}
     exit={{ opacity: 0, x: 10 }}
-    className={cn("group flex items-center gap-3 p-3 rounded-xl border border-border/40 hover:border-primary/30 transition-smooth", task.completed && "opacity-70")}
+    className={cn(
+      "group flex items-center gap-3 p-3 rounded-xl border transition-smooth",
+      task.completed ? "opacity-70 border-border/40" : (isOverdue ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60 hover:bg-destructive/10" : "border-border/40 hover:border-primary/30")
+    )}
   >
     <button
       onClick={(e) => {
