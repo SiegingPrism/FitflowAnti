@@ -1,4 +1,4 @@
-// AI Weekly Plan — generates a Mon→Sun plan from the last 14 days of data
+// AI Weekly Plan — generates a Mon→Sun plan from the last 14 days of data using Google Gemini API directly
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -28,76 +28,66 @@ serve(async (req) => {
 
   try {
     const { snapshot } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("VITE_GEMINI_API_KEY") || Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const userPrompt = `User snapshot (last 14 days):\n${JSON.stringify(snapshot, null, 2)}\n\nGenerate the weekly plan now.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
+        systemInstruction: {
+          parts: [{ text: SYSTEM_PROMPT }]
+        },
+        contents: [
+          { role: "user", parts: [{ text: userPrompt }] }
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "deliver_weekly_plan",
-              description: "Return a structured Mon→Sun plan.",
-              parameters: {
-                type: "object",
-                properties: {
-                  theme: { type: "string", description: "Short theme for the week (≤ 60 chars)." },
-                  rationale: { type: "string", description: "Why this theme — reference data." },
-                  days: {
-                    type: "array",
-                    description: "Exactly 7 days, Monday through Sunday in order.",
-                    items: {
-                      type: "object",
-                      properties: {
-                        day: {
-                          type: "string",
-                          enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-                        },
-                        intent: { type: "string", description: "One-line intent for this day." },
-                        tasks: {
-                          type: "array",
-                          description: "1–3 focus tasks for this day.",
-                          items: {
-                            type: "object",
-                            properties: {
-                              title: { type: "string" },
-                              priority: { type: "string", enum: ["low", "medium", "high", "urgent"] },
-                              durationMin: { type: "number" },
-                              category: {
-                                type: "string",
-                                enum: ["work", "personal", "health", "learning", "other"],
-                              },
-                            },
-                            required: ["title", "priority", "durationMin", "category"],
-                            additionalProperties: false,
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              theme: { type: "STRING", description: "Short theme for the week (≤ 60 chars)." },
+              rationale: { type: "STRING", description: "Why this theme — reference data." },
+              days: {
+                type: "ARRAY",
+                description: "Exactly 7 days, Monday through Sunday in order.",
+                items: {
+                  type: "OBJECT",
+                  properties: {
+                    day: {
+                      type: "STRING",
+                      enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                    },
+                    intent: { type: "STRING", description: "One-line intent for this day." },
+                    tasks: {
+                      type: "ARRAY",
+                      description: "1–3 focus tasks for this day.",
+                      items: {
+                        type: "OBJECT",
+                        properties: {
+                          title: { type: "STRING" },
+                          priority: { type: "STRING", enum: ["low", "medium", "high", "urgent"] },
+                          durationMin: { type: "NUMBER" },
+                          category: {
+                            type: "STRING",
+                            enum: ["work", "personal", "health", "learning", "other"],
                           },
                         },
+                        required: ["title", "priority", "durationMin", "category"]
                       },
-                      required: ["day", "intent", "tasks"],
-                      additionalProperties: false,
                     },
                   },
+                  required: ["day", "intent", "tasks"]
                 },
-                required: ["theme", "rationale", "days"],
-                additionalProperties: false,
               },
             },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "deliver_weekly_plan" } },
+            required: ["theme", "rationale", "days"],
+          }
+        }
       }),
     });
 
@@ -108,26 +98,21 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Add funds in workspace settings." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("Gateway error", response.status, t);
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+      console.error("Gemini API error", response.status, t);
+      return new Response(JSON.stringify({ error: "AI API error" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) throw new Error("No tool call in response");
-    const args = JSON.parse(toolCall.function.arguments);
+    const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!resultText) throw new Error("No text in response");
 
-    return new Response(JSON.stringify(args), {
+    const resultJson = JSON.parse(resultText);
+
+    return new Response(JSON.stringify(resultJson), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
