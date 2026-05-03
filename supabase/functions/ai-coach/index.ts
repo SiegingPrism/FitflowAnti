@@ -26,8 +26,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { snapshot } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("VITE_GEMINI_API_KEY") || Deno.env.get("GEMINI_API_KEY");
+    const { snapshot, apiKey } = await req.json();
+    const GEMINI_API_KEY = apiKey || Deno.env.get("VITE_GEMINI_API_KEY") || Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const userPrompt = `User snapshot:\n${JSON.stringify(snapshot, null, 2)}\n\nGenerate insights and suggestions now.`;
