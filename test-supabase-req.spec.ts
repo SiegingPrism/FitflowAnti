@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('intercept supabase tasks request', async ({ page }) => {
-  const errors: any[] = [];
+  const errors: string[] = [];
   page.on('console', msg => {
     if (msg.type() === 'error') {
       errors.push(msg.text());

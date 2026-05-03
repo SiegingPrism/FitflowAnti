@@ -170,32 +170,32 @@ const HEALTH_EMOJIS = new Set(["💧", "🏋️", "🏃", "🧘", "🍎", "🥗"
 export function branchOf(source: ActionSource): Branch {
   switch (source.type) {
     case "task": {
-      if (source.category === "work") return "work";
+      if (source.category === "work") return "focus";
       if (source.category === "health") return "health";
       if (source.category === "learning") return "learning";
-      if (source.category === "study") return "study";
-      if (source.category === "fitness") return "fitness";
-      if (source.category === "mental_health") return "mental_health";
+      if (source.category === "study") return "learning";
+      if (source.category === "fitness") return "health";
+      if (source.category === "mental_health") return "health";
       if (source.category === "personal") return "craft";
-      return "other";
+      return "craft";
     }
     case "habit": {
       if (source.emoji && HEALTH_EMOJIS.has(source.emoji)) return "health";
       if (source.category === "learning") return "learning";
       if (source.category === "health") return "health";
-      if (source.category === "work") return "work";
-      if (source.category === "study") return "study";
-      if (source.category === "fitness") return "fitness";
-      if (source.category === "mental_health") return "mental_health";
+      if (source.category === "work") return "focus";
+      if (source.category === "study") return "learning";
+      if (source.category === "fitness") return "health";
+      if (source.category === "mental_health") return "health";
       if (source.category === "personal") return "craft";
-      return "other";
+      return "craft";
     }
     case "focus":
       return "focus";
     case "health":
       return "health";
     case "login":
-      return "other";
+      return "craft";
   }
 }
 
