@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
-import { generateCoachInsights, generateWeeklyPlan as genWeeklyPlan } from "@/lib/gemini";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }
 interface Suggestion { title: string; priority: "low" | "medium" | "high" | "urgent"; durationMin: number; reason: string; }
@@ -129,8 +128,12 @@ const CoachPage = () => {
   const refreshAI = async () => {
     setLoading(true);
     try {
-      const result = await generateCoachInsights(buildSnapshot(state));
-      setData(result);
+      const { data, error } = await supabase.functions.invoke('ai-coach', {
+        body: { snapshot: buildSnapshot(state) }
+      });
+      if (error) throw error;
+
+      setData(data);
       setAiPowered(true);
       toast.success("Coach updated with fresh AI insights");
     } catch (e: unknown) {
@@ -138,7 +141,7 @@ const CoachPage = () => {
       if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
       else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("AI unavailable, showing local insights.");
-      console.error(e);
+      console.error("refreshAI error:", e);
       setData(ruleBasedFallback(state));
       setAiPowered(false);
     } finally { setLoading(false); }
@@ -147,15 +150,19 @@ const CoachPage = () => {
   const generatePlan = async () => {
     setPlanLoading(true);
     try {
-      const result = await genWeeklyPlan(buildPlanSnapshot(state));
-      setPlan(result);
-      toast.success(`Plan ready: ${result.theme}`);
+      const { data, error } = await supabase.functions.invoke('ai-weekly-plan', {
+        body: { snapshot: buildPlanSnapshot(state) }
+      });
+      if (error) throw error;
+
+      setPlan(data);
+      toast.success(`Plan ready: ${data.theme}`);
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
       if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
       else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("Couldn't generate plan. Try again.");
-      console.error(e);
+      console.error("generatePlan error:", e);
     } finally { setPlanLoading(false); }
   };
 

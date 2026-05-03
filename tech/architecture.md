@@ -13,7 +13,7 @@ FlowSphere is a **client-first PWA** with an optional cloud layer for sync, auth
 | Routing | React Router v6 | File-per-page in `src/pages/` |
 | Charts | Recharts (in shadcn `chart.tsx`) | + custom CSS conic gradients |
 | Backend | Lovable Cloud (Supabase under the hood) | Edge functions + Postgres + Auth (Tier 2) |
-| AI | Lovable AI Gateway → `google/gemini-2.5-flash` / `pro` | Edge function: `supabase/functions/ai-coach` |
+| AI | Google Gemini API → `gemini-2.5-flash` | Edge function: `supabase/functions/ai-coach` |
 
 ## Stack (planned)
 - **Auth** — email/password + Google OAuth via Lovable Cloud
@@ -54,8 +54,8 @@ User action
 
 AI Coach request
   → invoke('ai-coach', { snapshot })
-    → edge function reads LOVABLE_API_KEY from env
-    → POST to ai.gateway.lovable.dev with tool-call schema
+    → edge function reads GEMINI_API_KEY from env
+    → POST to generativelanguage.googleapis.com
     → return structured JSON
     → render in Coach page
 ```
