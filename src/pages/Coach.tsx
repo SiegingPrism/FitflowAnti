@@ -129,7 +129,7 @@ const CoachPage = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-coach', {
-        body: { snapshot: buildSnapshot(state) }
+        body: { snapshot: buildSnapshot(state), apiKey: import.meta.env.VITE_GEMINI_API_KEY }
       });
       if (error) throw error;
 
@@ -151,7 +151,7 @@ const CoachPage = () => {
     setPlanLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-weekly-plan', {
-        body: { snapshot: buildPlanSnapshot(state) }
+        body: { snapshot: buildPlanSnapshot(state), apiKey: import.meta.env.VITE_GEMINI_API_KEY }
       });
       if (error) throw error;
 
