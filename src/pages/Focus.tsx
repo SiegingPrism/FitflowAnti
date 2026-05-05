@@ -21,14 +21,17 @@ const FocusPage = () => {
   const focusSessions = useAppStore((s) => s.focusSessions);
 
   const [mode, setMode] = useState<Mode>("focus");
+  const [focusDuration, setFocusDuration] = useState(FOCUS_MIN);
   const [secondsLeft, setSecondsLeft] = useState(FOCUS_MIN * 60);
   const [running, setRunning] = useState(false);
   const [taskId, setTaskId] = useState<string | undefined>(undefined);
   const [completedToday, setCompletedToday] = useState(0);
+
   const intervalRef = useRef<number | null>(null);
+  const endTimeRef = useRef<number | null>(null);
 
   const openTasks = tasks.filter((t) => !t.completed);
-  const total = mode === "focus" ? FOCUS_MIN * 60 : BREAK_MIN * 60;
+  const total = mode === "focus" ? focusDuration * 60 : BREAK_MIN * 60;
   const pct = ((total - secondsLeft) / total) * 100;
 
   useEffect(() => {
@@ -37,39 +40,67 @@ const FocusPage = () => {
   }, [focusSessions]);
 
   useEffect(() => {
-    if (!running) return;
+    if (!running || !endTimeRef.current) return;
+
     intervalRef.current = window.setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          // session complete
-          window.clearInterval(intervalRef.current!);
-          setRunning(false);
-          if (mode === "focus") {
-            logFocusSession({ taskId, durationMin: FOCUS_MIN });
-            toast.success("Focus session complete! +XP awarded", { description: "Take a 5-min break." });
-            setMode("break");
-            return BREAK_MIN * 60;
-          } else {
-            toast("Break over. Ready for another round?");
-            setMode("focus");
-            return FOCUS_MIN * 60;
-          }
+      const remaining = Math.round((endTimeRef.current! - Date.now()) / 1000);
+
+      if (remaining <= 0) {
+        window.clearInterval(intervalRef.current!);
+        setRunning(false);
+        endTimeRef.current = null;
+
+        if (mode === "focus") {
+          logFocusSession({ taskId, durationMin: focusDuration });
+          toast.success("Focus session complete! +XP awarded", { description: "Take a 5-min break." });
+          setMode("break");
+          setSecondsLeft(BREAK_MIN * 60);
+        } else {
+          toast("Break over. Ready for another round?");
+          setMode("focus");
+          setSecondsLeft(focusDuration * 60);
         }
-        return s - 1;
-      });
+      } else {
+        setSecondsLeft(remaining);
+      }
     }, 1000);
-    return () => { if (intervalRef.current) window.clearInterval(intervalRef.current); };
-  }, [running, mode, taskId, logFocusSession]);
+
+    return () => {
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
+    };
+  }, [running, mode, taskId, focusDuration, logFocusSession]);
+
+  const toggleTimer = () => {
+    if (running) {
+      setRunning(false);
+      endTimeRef.current = null;
+    } else {
+      setRunning(true);
+      endTimeRef.current = Date.now() + secondsLeft * 1000;
+    }
+  };
 
   const reset = () => {
     setRunning(false);
-    setSecondsLeft(mode === "focus" ? FOCUS_MIN * 60 : BREAK_MIN * 60);
+    endTimeRef.current = null;
+    setSecondsLeft(mode === "focus" ? focusDuration * 60 : BREAK_MIN * 60);
   };
 
   const switchMode = (m: Mode) => {
     setMode(m);
     setRunning(false);
-    setSecondsLeft(m === "focus" ? FOCUS_MIN * 60 : BREAK_MIN * 60);
+    endTimeRef.current = null;
+    setSecondsLeft(m === "focus" ? focusDuration * 60 : BREAK_MIN * 60);
+  };
+
+  const handleDurationChange = (val: string) => {
+    const newDuration = parseInt(val, 10);
+    setFocusDuration(newDuration);
+    if (mode === "focus") {
+      setRunning(false);
+      endTimeRef.current = null;
+      setSecondsLeft(newDuration * 60);
+    }
   };
 
   const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
@@ -121,7 +152,7 @@ const FocusPage = () => {
             </div>
 
             <div className="flex gap-2 mt-8">
-              <Button size="lg" onClick={() => setRunning(!running)} className="bg-gradient-primary hover:shadow-glow min-w-32">
+              <Button size="lg" onClick={toggleTimer} className="bg-gradient-primary hover:shadow-glow min-w-32">
                 {running ? <><Pause className="w-4 h-4 mr-1" />Pause</> : <><Play className="w-4 h-4 mr-1" />Start</>}
               </Button>
               <Button size="lg" variant="outline" onClick={reset}><RotateCcw className="w-4 h-4 mr-1" />Reset</Button>
@@ -130,6 +161,21 @@ const FocusPage = () => {
         </FadeIn>
 
         <div className="flex flex-col gap-5">
+          <FadeIn delay={0.05} className="glass-card">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Duration</p>
+            <Select value={String(focusDuration)} onValueChange={handleDurationChange}>
+              <SelectTrigger disabled={running}><SelectValue placeholder="Pick duration" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 minutes</SelectItem>
+                <SelectItem value="25">25 minutes</SelectItem>
+                <SelectItem value="45">45 minutes</SelectItem>
+                <SelectItem value="60">1 hour</SelectItem>
+                <SelectItem value="90">1.5 hours</SelectItem>
+                <SelectItem value="120">2 hours</SelectItem>
+              </SelectContent>
+            </Select>
+          </FadeIn>
+
           <FadeIn delay={0.1} className="glass-card">
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-2">Focusing on</p>
             <Select value={taskId ?? "none"} onValueChange={(v) => setTaskId(v === "none" ? undefined : v)}>
