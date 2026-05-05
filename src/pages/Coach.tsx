@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
+import { generateCoachInsights, generateWeeklyPlan as genWeeklyPlan } from "@/lib/gemini";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }
 interface Suggestion { title: string; priority: "low" | "medium" | "high" | "urgent"; durationMin: number; reason: string; }
@@ -118,6 +119,8 @@ const CoachPage = () => {
   const [data, setData] = useState<CoachResponse | null>(() => ruleBasedFallback(state));
   const [plan, setPlan] = useState<WeeklyPlan | null>(null);
   const [aiPowered, setAiPowered] = useState(false);
+  const { user } = useAuth();
+  const isDeveloper = user?.email === "dev@fitflow.app";
 
   const burnout = useMemo(
     () => computeBurnout({ healthLogs: state.healthLogs, tasks: state.tasks, xpHistory: state.xpHistory }),
@@ -200,19 +203,40 @@ const CoachPage = () => {
         </div>
       </FadeIn>
 
+      {isDeveloper && (
+        <FadeIn delay={0.02} className="glass-card mb-5 border-destructive/50 bg-destructive/5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/20 blur-3xl rounded-full pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <Chip tone="destructive" className="animate-pulse">🔥 Hell Mode (Developer Preview)</Chip>
+              <h3 className="text-xl font-display font-bold mt-2 text-destructive">The Drill Sergeant</h3>
+              <p className="text-sm mt-1 max-w-xl text-muted-foreground">
+                "Attention, recruit! You're slacking. Complete 3 tasks in the next hour or lose 50 XP. Move it!"
+              </p>
+              <p className="text-xs text-destructive/80 mt-2 font-mono">
+                [Status: Blueprint complete. Full AI Persona integration pending.]
+              </p>
+            </div>
+            <Button variant="destructive" className="shadow-glow whitespace-nowrap" onClick={() => toast("Hell Mode activated! Prepare to suffer.", { icon: "🔥" })}>
+              Engage Hell Mode
+            </Button>
+          </div>
+        </FadeIn>
+      )}
+
       {/* Burnout watch */}
       <FadeIn delay={0.05} className={cn(
         "mb-5 rounded-2xl border p-5 transition-smooth",
         burnout.level === "high" ? "border-warning/50 bg-warning/10" :
-        burnout.level === "moderate" ? "border-accent/40 bg-accent/5" :
-        "border-success/30 bg-success/5",
+          burnout.level === "moderate" ? "border-accent/40 bg-accent/5" :
+            "border-success/30 bg-success/5",
       )}>
         <div className="flex items-start gap-4">
           <div className={cn(
             "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
             burnout.level === "high" ? "bg-warning/20 text-warning" :
-            burnout.level === "moderate" ? "bg-accent/20 text-accent" :
-            "bg-success/20 text-success",
+              burnout.level === "moderate" ? "bg-accent/20 text-accent" :
+                "bg-success/20 text-success",
           )}>
             {burnout.level === "high" ? <HeartPulse className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
           </div>
@@ -287,8 +311,8 @@ const CoachPage = () => {
                     <div className={cn(
                       "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
                       insight.tone === "warning" ? "bg-warning/20 text-warning" :
-                      insight.tone === "positive" ? "bg-success/20 text-success" :
-                      "bg-primary/20 text-primary",
+                        insight.tone === "positive" ? "bg-success/20 text-success" :
+                          "bg-primary/20 text-primary",
                     )}>
                       {insight.tone === "warning" ? <AlertTriangle className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
                     </div>
