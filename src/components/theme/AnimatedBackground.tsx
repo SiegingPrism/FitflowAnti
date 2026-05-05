@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useThemeEngine } from "./ThemeProvider";
 import type { AnimationKind, ThemeConfig } from "@/lib/themes.config";
+import { useAppStore } from "@/lib/store";
 
 /**
  * Theme-driven animated background. One canvas, multiple painters.
@@ -16,6 +17,7 @@ import type { AnimationKind, ThemeConfig } from "@/lib/themes.config";
  */
 export const AnimatedBackground = () => {
   const { config } = useThemeEngine();
+  const hellMode = useAppStore((s) => s.hellMode);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const cfgRef = useRef<ThemeConfig>(config);
 
@@ -129,6 +131,8 @@ export const AnimatedBackground = () => {
       window.removeEventListener("resize", resize);
     };
   }, []);
+
+  if (hellMode) return null;
 
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
