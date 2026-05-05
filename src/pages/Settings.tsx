@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
-  const { userName, setUserName, primaryGoals, setPrimaryGoals, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal } = useAppStore();
+  const { userName, setUserName, primaryGoals, setPrimaryGoals, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal, hellMode, toggleHellMode } = useAppStore();
   const { user, signOut } = useAuth();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useTheme();
@@ -275,11 +275,19 @@ const SettingsPage = () => {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button 
-                  className="bg-red-950/80 text-red-400 border border-red-500/50 hover:bg-red-900 hover:border-red-400 transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold" 
+                  className={cn(
+                    "border transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold",
+                    hellMode 
+                      ? "bg-red-500 text-white border-red-400 hover:bg-red-600 shadow-[0_0_20px_rgba(239,68,68,0.4)]" 
+                      : "bg-red-950/80 text-red-400 border-red-500/50 hover:bg-red-900 hover:border-red-400"
+                  )}
                   size="sm" 
-                  onClick={() => toast.success("Hell Mode parameters adjusted for testing.")}
+                  onClick={() => {
+                    toggleHellMode();
+                    toast(hellMode ? "Hell Mode Deactivated." : "Hell Mode Activated! Prepare to suffer.", { icon: "🔥" });
+                  }}
                 >
-                  Configure Parameters
+                  {hellMode ? "Deactivate Hell Mode" : "Engage Hell Mode"}
                 </Button>
                 <Button 
                   className="bg-transparent text-red-400/80 border border-red-500/20 hover:bg-red-500/10 hover:text-red-300 transition-smooth" 

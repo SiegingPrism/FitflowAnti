@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+
+body.hell-mode {
+  background-image: url('/hellscape.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+  background-color: #310000 !important;
+  color: #ff9999 !important;
+}
+
+body.hell-mode .glass-card, 
+body.hell-mode .glass-panel,
+body.hell-mode [class*="glass-card"] {
+  background: rgba(30, 0, 0, 0.85) !important;
+  border: 1px solid rgba(255, 60, 60, 0.5) !important;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.15), inset 0 0 10px rgba(255, 0, 0, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Lava cracks pseudo-element */
+body.hell-mode .glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: radial-gradient(circle at 50% 0%, rgba(255,0,0,0.1), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.hell-mode * {
+  border-color: rgba(255, 0, 0, 0.3) !important;
+}
+
+body.hell-mode h1, 
+body.hell-mode h2, 
+body.hell-mode h3,
+body.hell-mode .text-foreground,
+body.hell-mode .text-primary {
+  color: #ff4444 !important;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+}
+
+body.hell-mode p, 
+body.hell-mode span, 
+body.hell-mode div:not(.glass-card) {
+  color: inherit;
+}
+
+body.hell-mode .text-muted-foreground {
+  color: rgba(255, 100, 100, 0.7) !important;
+}
+
+body.hell-mode button.bg-primary,
+body.hell-mode button.bg-gradient-primary,
+body.hell-mode .bg-primary,
+body.hell-mode .bg-gradient-primary {
+  background: linear-gradient(135deg, #8b0000 0%, #ff0000 100%) !important;
+  color: white !important;
+  border: 1px solid #ff5555 !important;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.6) !important;
+}
+
+body.hell-mode .ring-primary {
+  --tw-ring-color: #ff0000 !important;
+}
+
+/* Replace specific texts via CSS content or just rely on React state */
+body.hell-mode .hell-mode-hidden {
+  display: none !important;
+}
+
+body.hell-mode .hell-mode-only {
+  display: block !important;
+}
+
+.hell-mode-only {
+  display: none;
+}

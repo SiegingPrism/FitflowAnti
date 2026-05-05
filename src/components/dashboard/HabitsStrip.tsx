@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export const HabitsStrip = () => {
   const habits = useAppStore((s) => s.habits);
   const toggle = useAppStore((s) => s.toggleHabitToday);
+  const hellMode = useAppStore((s) => s.hellMode);
   const today = todayKey();
 
   const computeStreak = (history: string[]) => {
@@ -45,14 +46,23 @@ export const HabitsStrip = () => {
       transition={{ duration: 0.5, delay: 0.5 }}
       className="glass-card"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Daily ritual</p>
-          <h2 className="text-xl font-display font-bold mt-1">Habits</h2>
+      <div className="flex flex-col mb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Daily ritual</p>
+            <h2 className={cn("text-xl font-display font-bold mt-1", hellMode && "text-red-500 tracking-wider")}>
+              {hellMode ? "BLOOD & ASH" : "Habits"}
+            </h2>
+          </div>
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-warning/15 text-warning inline-flex items-center gap-1">
+            <Flame className="w-3 h-3" /> Live
+          </span>
         </div>
-        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-warning/15 text-warning inline-flex items-center gap-1">
-          <Flame className="w-3 h-3" /> Live
-        </span>
+        {hellMode && (
+          <p className="text-xs text-red-500/80 mt-1 uppercase tracking-widest font-bold">
+            SACRIFICE OR BE DAMNED. ({habits.filter(h => h.history.includes(today)).length}/{habits.length} Habits Kept)
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 scrollbar-thin">

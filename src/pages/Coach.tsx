@@ -115,6 +115,8 @@ const TONE_STYLES = {
 const CoachPage = () => {
   const state = useAppStore();
   const addTask = useAppStore((s) => s.addTask);
+  const hellMode = useAppStore((s) => s.hellMode);
+  const toggleHellMode = useAppStore((s) => s.toggleHellMode);
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
   const [data, setData] = useState<CoachResponse | null>(() => ruleBasedFallback(state));
@@ -223,10 +225,18 @@ const CoachPage = () => {
               </p>
             </div>
             <Button 
-              className="bg-red-950/80 text-red-400 border border-red-500/50 hover:bg-red-900 hover:border-red-400 transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold whitespace-nowrap" 
-              onClick={() => toast("Hell Mode activated! Prepare to suffer.", { icon: "🔥" })}
+              className={cn(
+                "border transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold whitespace-nowrap",
+                hellMode 
+                  ? "bg-red-500 text-white border-red-400 hover:bg-red-600 shadow-[0_0_20px_rgba(239,68,68,0.4)]" 
+                  : "bg-red-950/80 text-red-400 border-red-500/50 hover:bg-red-900 hover:border-red-400"
+              )}
+              onClick={() => {
+                toggleHellMode();
+                toast(hellMode ? "Hell Mode Deactivated." : "Hell Mode Activated! Prepare to suffer.", { icon: "🔥" });
+              }}
             >
-              Engage Hell Mode
+              {hellMode ? "Deactivate Hell Mode" : "Engage Hell Mode"}
             </Button>
           </div>
         </FadeIn>

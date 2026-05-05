@@ -1,3 +1,5 @@
+@import "./styles/hell-mode.css";
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Quicksand:wght@400;500;600;700&family=Righteous&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&family=Jost:wght@400;500;600&family=Kanit:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Montserrat:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Cinzel:wght@600;700&display=swap');
 
 @tailwind base;

@@ -35,7 +35,7 @@ const getEmotionalFeedback = (completed: number, total: number) => {
 };
 
 export const HeroCard = () => {
-  const { tasks, focusSessions, totalXP, userName } = useAppStore();
+  const { tasks, focusSessions, totalXP, userName, hellMode } = useAppStore();
   const todayStr = getISTTodayStr();
   const todays = tasks.filter((t) => (t.dueDate ?? "").startsWith(todayStr) || !t.dueDate);
   const completed = todays.filter((t) => t.completed).length;
@@ -77,29 +77,37 @@ export const HeroCard = () => {
 
       <div className="relative z-10 flex flex-col gap-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3" /> FlowSphere
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary mb-2 flex items-center gap-1.5 drop-shadow-sm">
+            <Sparkles className="w-3 h-3" /> {hellMode ? "INFERNAL TRIAL: THE ETERNAL CINDER" : "FlowSphere"}
           </p>
-          <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-balance">
-            <span className="gradient-text">{greeting().split(" ")[0]}</span>{" "}
-            {greeting().split(" ").slice(1).join(" ")},
-            <br />
-            {userName}
-          </h2>
+          {hellMode ? (
+            <h2 className="text-2xl md:text-4xl font-display font-bold tracking-tight text-balance uppercase drop-shadow-md">
+              ASCEND OR BE CONSUMED.
+            </h2>
+          ) : (
+            <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight text-balance">
+              <span className="gradient-text">{greeting().split(" ")[0]}</span>{" "}
+              {greeting().split(" ").slice(1).join(" ")},
+              <br />
+              {userName}
+            </h2>
+          )}
           <p className="text-muted-foreground mt-3 max-w-md">
-            {getEmotionalFeedback(completed, total)}
+            {hellMode ? "All non-essential functions are disabled." : getEmotionalFeedback(completed, total)}
           </p>
           <div className="flex items-center gap-3 mt-5">
             <Link
               to="/focus"
               className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-primary text-primary-foreground font-semibold shadow-elevated hover:shadow-glow transition-smooth"
             >
-              Start focus
+              {hellMode ? "COMMENCE TRIAL" : "Start focus"}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-smooth" />
             </Link>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${state.tone === "warm" ? "warning" : state.tone}/15 text-${state.tone === "warm" ? "warning" : state.tone === "muted" ? "muted-foreground" : state.tone}`}>
-              {state.label}
-            </span>
+            {!hellMode && (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${state.tone === "warm" ? "warning" : state.tone}/15 text-${state.tone === "warm" ? "warning" : state.tone === "muted" ? "muted-foreground" : state.tone}`}>
+                {state.label}
+              </span>
+            )}
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { getISTDate } from "@/lib/utils";
+import { getISTDate, cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAppStore, todayKey } from "@/lib/store";
 import { Droplets, Footprints, Activity, Plus } from "lucide-react";
@@ -16,6 +16,7 @@ export const QuickHealth = () => {
   const { healthLogs, logHealth, setMood } = useAppStore();
   const today = todayKey();
   const state = useAppStore();
+  const hellMode = useAppStore((s) => s.hellMode);
   const log = healthLogs.find((l) => l.date === today) ?? { date: today, waterMl: 0, steps: 0, workouts: 0 };
   const waterPct = Math.min(100, (log.waterMl / 2500) * 100);
   const stepsPct = Math.min(100, (log.steps / 8000) * 100);
@@ -40,8 +41,12 @@ export const QuickHealth = () => {
     >
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Wellbeing</p>
-          <h2 className="text-xl font-display font-bold mt-1">Today's body</h2>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            {hellMode ? "Wellbeing" : "Wellbeing"}
+          </p>
+          <h2 className={cn("text-xl font-display font-bold mt-1", hellMode && "text-red-500 uppercase tracking-widest")}>
+            {hellMode ? "CONSUMED BY THRIVING" : "Today's body"}
+          </h2>
         </div>
       </div>
 

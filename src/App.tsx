@@ -64,6 +64,15 @@ const ProtectedRoutes = () => {
   const bindUser = useAppStore((s) => s.bindUser);
   const hydrated = useAppStore((s) => s.hydrated);
   const onboardedAt = useAppStore((s) => s.onboardedAt);
+  const hellMode = useAppStore((s) => s.hellMode);
+
+  useEffect(() => {
+    if (hellMode) {
+      document.body.classList.add("hell-mode");
+    } else {
+      document.body.classList.remove("hell-mode");
+    }
+  }, [hellMode]);
 
   useEffect(() => {
     if (loading) return;

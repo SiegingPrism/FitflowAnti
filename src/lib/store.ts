@@ -132,6 +132,8 @@ interface AppState {
 
   // Dev
   grantDebugXp: (amount: number, reason?: string) => void;
+  hellMode: boolean;
+  toggleHellMode: () => void;
 }
 
 // Ensure today uses local time to match UI display
@@ -155,6 +157,7 @@ const EMPTY_STATE = {
   dailyFocusTargetMin: 50,
   onboardedAt: undefined as string | undefined,
   primaryGoals: [] as PrimaryGoal[],
+  hellMode: false,
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
@@ -680,6 +683,7 @@ export const useAppStore = create<AppState>()(
             );
           }
         },
+        toggleHellMode: () => set((s) => ({ hellMode: !s.hellMode })),
       };
     },
     {
@@ -698,6 +702,7 @@ export const useAppStore = create<AppState>()(
         primaryGoals: s.primaryGoals,
         dailyFocusTargetMin: s.dailyFocusTargetMin,
         claimedSlots: s.claimedSlots,
+        hellMode: s.hellMode,
       }),
     },
   ),

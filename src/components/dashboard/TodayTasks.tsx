@@ -16,6 +16,7 @@ const priorityColor: Record<Priority, string> = {
 export const TodayTasks = () => {
   const tasks = useAppStore((s) => s.tasks);
   const toggleTask = useAppStore((s) => s.toggleTask);
+  const hellMode = useAppStore((s) => s.hellMode);
   const todayStr = getISTTodayStr();
   const todays = tasks.filter((t) => !t.dueDate || t.dueDate.startsWith(todayStr)).slice(0, 6);
   const done = todays.filter((t) => t.completed).length;
@@ -29,12 +30,19 @@ export const TodayTasks = () => {
     >
       <div className="flex items-start justify-between mb-5">
         <div>
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Priority Queue</p>
-          <h2 className="text-2xl font-display font-bold mt-1">Today's Focus</h2>
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+            {hellMode ? "Today's Focus" : "Priority Queue"}
+          </p>
+          <h2 className={cn("text-2xl font-display font-bold mt-1", hellMode && "text-red-500 tracking-wider")}>
+            {hellMode ? "UNFORGIVING BURDENS" : "Today's Focus"}
+          </h2>
+          {hellMode && <p className="text-xs text-red-500/80 mt-1 uppercase tracking-widest font-bold">Fail at your own risk. ({todays.length - done}/{todays.length} Tasks Overdue)</p>}
         </div>
-        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-success/15 text-success">
-          {done}/{todays.length} done
-        </span>
+        {!hellMode && (
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-success/15 text-success">
+            {done}/{todays.length} done
+          </span>
+        )}
       </div>
 
       {todays.length === 0 ? (
@@ -87,11 +95,15 @@ const TaskRow = ({ task, onToggle }: { task: Task; onToggle: () => void }) => (
       {task.completed && <Check className="w-4 h-4" strokeWidth={3} />}
     </button>
     <div className="flex-1 min-w-0">
-      <p className={cn("font-medium text-sm truncate", task.completed && "line-through")}>{task.title}</p>
+      <p className={cn("font-medium text-sm truncate", task.completed && "line-through", document.body.classList.contains("hell-mode") && "text-red-300 font-creepster tracking-widest text-lg")}>{task.title}</p>
       <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-        <span className={cn("px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase", priorityColor[task.priority])}>
-          {task.priority}
-        </span>
+        {document.body.classList.contains("hell-mode") ? (
+           <span className="text-red-500 font-bold uppercase tracking-widest bg-red-950/50 px-2 py-0.5 rounded border border-red-500/30">EXPIRED</span>
+        ) : (
+          <span className={cn("px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase", priorityColor[task.priority])}>
+            {task.priority}
+          </span>
+        )}
         <span className="inline-flex items-center gap-1">
           <Clock className="w-3 h-3" /> {task.durationMin}m
         </span>
