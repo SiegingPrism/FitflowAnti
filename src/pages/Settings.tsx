@@ -253,33 +253,36 @@ const SettingsPage = () => {
         </FadeIn>
 
         {isDeveloper && (
-          <FadeIn delay={0.06} className="glass-card lg:col-span-2 border-destructive/50 bg-destructive/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/20 blur-3xl rounded-full pointer-events-none" />
+          <FadeIn delay={0.06} className="glass-card lg:col-span-2 border-red-500/50 bg-red-950/30 relative overflow-hidden ring-1 ring-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 blur-[80px] rounded-full pointer-events-none" />
             <div className="relative z-10">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xl">🔥</span>
-                  <p className="text-xs uppercase tracking-wider text-destructive font-bold">Hell Mode (Developer Preview)</p>
+                  <span className="text-xl filter drop-shadow-md">🔥</span>
+                  <p className="text-xs uppercase tracking-widest text-red-400 font-bold drop-shadow-sm">Hell Mode (Developer Preview)</p>
                 </div>
-                <Chip tone="destructive" className="animate-pulse">Active</Chip>
+                <div className="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  Active
+                </div>
               </div>
-              <p className="text-sm text-destructive/90 font-medium mb-2">
+              <p className="text-sm text-red-200 font-medium mb-2 drop-shadow-sm">
                 "The Drill Sergeant" is currently monitoring your app activity.
               </p>
-              <p className="text-xs text-muted-foreground mb-4 max-w-2xl">
+              <p className="text-xs text-red-200/60 mb-5 max-w-2xl leading-relaxed">
                 Warning: Hell Mode actively degrades UX, tracks app-switching, and docks XP if tasks are missed. 
                 This UI is visible because you are logged in with the dev@fitflow.app developer account.
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <Button 
-                  variant="destructive" 
+                  className="bg-red-950/80 text-red-400 border border-red-500/50 hover:bg-red-900 hover:border-red-400 transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold" 
                   size="sm" 
                   onClick={() => toast.success("Hell Mode parameters adjusted for testing.")}
                 >
                   Configure Parameters
                 </Button>
                 <Button 
-                  variant="outline" 
+                  className="bg-transparent text-red-400/80 border border-red-500/20 hover:bg-red-500/10 hover:text-red-300 transition-smooth" 
                   size="sm" 
                   onClick={() => toast("View the blueprint in product/HellModeBlueprint.md", { icon: "📄" })}
                 >

@@ -205,20 +205,27 @@ const CoachPage = () => {
       </FadeIn>
 
       {isDeveloper && (
-        <FadeIn delay={0.02} className="glass-card mb-5 border-destructive/50 bg-destructive/5 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/20 blur-3xl rounded-full pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <FadeIn delay={0.02} className="glass-card mb-5 border-red-500/50 bg-red-950/30 relative overflow-hidden ring-1 ring-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.1)]">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 blur-[80px] rounded-full pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <Chip tone="destructive" className="animate-pulse">🔥 Hell Mode (Developer Preview)</Chip>
-              <h3 className="text-xl font-display font-bold mt-2 text-destructive">The Drill Sergeant</h3>
-              <p className="text-sm mt-1 max-w-xl text-muted-foreground">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xl filter drop-shadow-md">🔥</span>
+                <p className="text-xs uppercase tracking-widest text-red-400 font-bold drop-shadow-sm">Hell Mode (Developer Preview)</p>
+              </div>
+              <h3 className="text-xl font-display font-bold mt-2 text-red-100 drop-shadow-sm">The Drill Sergeant</h3>
+              <p className="text-sm mt-1 max-w-xl text-red-200/80 leading-relaxed">
                 "Attention, recruit! You're slacking. Complete 3 tasks in the next hour or lose 50 XP. Move it!"
               </p>
-              <p className="text-xs text-destructive/80 mt-2 font-mono">
-                [Status: Blueprint complete. Full AI Persona integration pending.]
+              <p className="text-[10px] uppercase tracking-wider font-bold text-red-500 mt-3 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                Blueprint complete. Core AI integration pending.
               </p>
             </div>
-            <Button variant="destructive" className="shadow-glow whitespace-nowrap" onClick={() => toast("Hell Mode activated! Prepare to suffer.", { icon: "🔥" })}>
+            <Button 
+              className="bg-red-950/80 text-red-400 border border-red-500/50 hover:bg-red-900 hover:border-red-400 transition-smooth shadow-[0_0_15px_rgba(239,68,68,0.15)] font-semibold whitespace-nowrap" 
+              onClick={() => toast("Hell Mode activated! Prepare to suffer.", { icon: "🔥" })}
+            >
               Engage Hell Mode
             </Button>
           </div>
