@@ -23,6 +23,7 @@ const SettingsPage = () => {
   const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
   const [health, setHealth] = useState<ThemeHealthReport | null>(null);
+  const isDeveloper = user?.email === "dev@fitflow.app";
 
   // Re-run the runtime check whenever the theme changes — gives an instant
   // visual confirmation that the right class landed on <html>.
@@ -250,6 +251,44 @@ const SettingsPage = () => {
             </div>
           )}
         </FadeIn>
+
+        {isDeveloper && (
+          <FadeIn delay={0.06} className="glass-card lg:col-span-2 border-destructive/50 bg-destructive/5 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/20 blur-3xl rounded-full pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🔥</span>
+                  <p className="text-xs uppercase tracking-wider text-destructive font-bold">Hell Mode (Developer Preview)</p>
+                </div>
+                <Chip tone="destructive" className="animate-pulse">Active</Chip>
+              </div>
+              <p className="text-sm text-destructive/90 font-medium mb-2">
+                "The Drill Sergeant" is currently monitoring your app activity.
+              </p>
+              <p className="text-xs text-muted-foreground mb-4 max-w-2xl">
+                Warning: Hell Mode actively degrades UX, tracks app-switching, and docks XP if tasks are missed. 
+                This UI is visible because you are logged in with the dev@fitflow.app developer account.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  onClick={() => toast.success("Hell Mode parameters adjusted for testing.")}
+                >
+                  Configure Parameters
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => toast("View the blueprint in product/HellModeBlueprint.md", { icon: "📄" })}
+                >
+                  View Blueprint
+                </Button>
+              </div>
+            </div>
+          </FadeIn>
+        )}
 
         <FadeIn delay={0.08} className="glass-card lg:col-span-2">
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Explore</p>
