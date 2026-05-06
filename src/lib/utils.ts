@@ -22,3 +22,13 @@ export const getPastDays = (count: number, offset = 0) => {
   const now = getISTDate();
   return [...Array(count)].map((_, i) => format(subDays(now, i + offset), "yyyy-MM-dd"));
 };
+
+/** Checks if a given ISO date string falls on the target 'yyyy-MM-dd' date in IST */
+export const isSameDayIST = (dateStr: string | undefined, targetDayStr: string) => {
+  if (!dateStr) return false;
+  try {
+    return formatInTimeZone(new Date(dateStr), TZ, "yyyy-MM-dd") === targetDayStr;
+  } catch (e) {
+    return false;
+  }
+};
