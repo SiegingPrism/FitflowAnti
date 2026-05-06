@@ -6,7 +6,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
 import { TrendingUp, Activity, CheckCircle2 } from "lucide-react";
-import { getPastDays } from "@/lib/utils";
+import { getPastDays, isSameDayIST } from "@/lib/utils";
 
 const InsightsPage = () => {
   const { tasks, focusSessions, habits } = useAppStore();
@@ -21,8 +21,8 @@ const InsightsPage = () => {
 
   const last7 = useMemo(() => getPastDays(7).reverse().map((k) => {
     const d = parseISO(k);
-    const completed = tasks.filter((t) => t.completedAt?.startsWith(k)).length;
-    const focusMin = focusSessions.filter((s) => s.completedAt.startsWith(k)).reduce((a, s) => a + s.durationMin, 0);
+    const completed = tasks.filter((t) => isSameDayIST(t.completedAt, k)).length;
+    const focusMin = focusSessions.filter((s) => isSameDayIST(s.completedAt, k)).reduce((a, s) => a + s.durationMin, 0);
     return { date: d, label: format(d, "EEE"), completed, focusMin };
   }), [tasks, focusSessions]);
 
