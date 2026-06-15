@@ -1,4 +1,7 @@
-project_id = "zuvqfcdcaynqogaeghht"
+project_id = "dmaakmkrxzmobcwavusy"
 
 [functions.ai-coach]
+verify_jwt = false
+
+[functions.ai-weekly-plan]
 verify_jwt = false

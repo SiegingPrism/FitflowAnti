@@ -295,12 +295,20 @@ export function currentStreak(dates: string[], todayIso: string): number {
   const set = new Set(dates);
   let streak = 0;
   const cursor = new Date(todayIso + "T00:00:00");
+  
+  const formatDate = (d: Date): string => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const r = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${r}`;
+  };
+
   // allow grace: if today not present but yesterday is, streak still alive
-  if (!set.has(cursor.toISOString().slice(0, 10))) {
+  if (!set.has(formatDate(cursor))) {
     cursor.setDate(cursor.getDate() - 1);
-    if (!set.has(cursor.toISOString().slice(0, 10))) return 0;
+    if (!set.has(formatDate(cursor))) return 0;
   }
-  while (set.has(cursor.toISOString().slice(0, 10))) {
+  while (set.has(formatDate(cursor))) {
     streak += 1;
     cursor.setDate(cursor.getDate() - 1);
   }
