@@ -1050,13 +1050,3 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
 }
 
 export const todayKey = today;
-
-/** @deprecated use levelFromXp from src/lib/gamification.ts */
-export const getLevel = (xp: number) => {
-  const info = levelFromXp(xp);
-  return {
-    level: Math.max(1, info.level),
-    xpInLevel: info.xpInLevel,
-    xpToNext: info.xpForNext - info.xpForCurrent,
-  };
-};
