@@ -100,7 +100,7 @@ BEGIN
 
   IF v_is_completed THEN
     -- Already completed, safely return without awarding duplicate XP
-    RETURN jsonb_build_object('success', false, 'message', 'Task already completed');
+    RETURN jsonb_build_object('success', true, 'xp_earned', 0, 'message', 'already_awarded');
   END IF;
 
   -- Mark task as complete

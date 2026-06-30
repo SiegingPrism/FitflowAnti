@@ -285,11 +285,7 @@ export const useAppStore = create<AppState>()(
               let res: { success?: boolean; message?: string } | null = null;
               if (userId) {
                 const { data, error } = await supabase.rpc('complete_task', {
-                  p_task_id: id,
-                  p_title: task.title,
-                  p_xp: task.xp,
-                  p_priority: task.priority,
-                  p_category: task.category
+                  p_task_id: id
                 });
                 res = data as { success?: boolean; message?: string } | null;
 
