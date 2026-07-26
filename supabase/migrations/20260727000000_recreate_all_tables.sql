@@ -413,3 +413,16 @@ BEGIN
   RETURN jsonb_build_object('success', true, 'xp_earned', v_xp_amount);
 END;
 $$;
+
+-- ------------------------------------------------------------------------------
+-- 11. ENABLE REALTIME REPLICATION FOR CLIENT LISTENERS
+-- ------------------------------------------------------------------------------
+BEGIN;
+  DROP PUBLICATION IF EXISTS supabase_realtime;
+  CREATE PUBLICATION supabase_realtime;
+COMMIT;
+
+ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.habits;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+
