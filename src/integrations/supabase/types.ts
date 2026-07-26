@@ -200,6 +200,7 @@ export type Database = {
           id: string
           onboarded_at: string | null
           primary_goal: string | null
+          primary_goals: string[] | null
           theme: string
           total_xp: number
           updated_at: string
@@ -212,6 +213,7 @@ export type Database = {
           id?: string
           onboarded_at?: string | null
           primary_goal?: string | null
+          primary_goals?: string[] | null
           theme?: string
           total_xp?: number
           updated_at?: string
@@ -224,6 +226,7 @@ export type Database = {
           id?: string
           onboarded_at?: string | null
           primary_goal?: string | null
+          primary_goals?: string[] | null
           theme?: string
           total_xp?: number
           updated_at?: string

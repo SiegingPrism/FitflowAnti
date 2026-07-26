@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
-import { generateCoachInsights, generateWeeklyPlan as genWeeklyPlan } from "@/lib/gemini";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }

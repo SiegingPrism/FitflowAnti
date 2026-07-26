@@ -5,3 +5,4 @@ verify_jwt = false
 
 [functions.ai-weekly-plan]
 verify_jwt = false
+

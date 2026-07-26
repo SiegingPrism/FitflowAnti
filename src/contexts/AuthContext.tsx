@@ -21,12 +21,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // CRITICAL: subscribe BEFORE getSession to avoid missing the initial event
+    // Subscribe to auth state changes for SUBSEQUENT events (sign-in, sign-out, token refresh).
+    // Do NOT call setLoading here — getSession() is the authoritative source on page load.
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
-      setLoading(false);
     });
 
+    // getSession() resolves the persisted session from localStorage/cookie.
+    // Only after this resolves do we know whether the user is actually logged in.
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);

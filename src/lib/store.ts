@@ -575,7 +575,8 @@ export const useAppStore = create<AppState>()(
                 .from("profiles")
                 .update({
                   display_name: userName,
-                  primary_goal: primaryGoals.join(','),
+                  primary_goal: primaryGoals[0] ?? null,
+                  primary_goals: primaryGoals,
                   daily_focus_target_min: dailyFocusTargetMin,
                   onboarded_at: now,
                 })
@@ -611,7 +612,7 @@ export const useAppStore = create<AppState>()(
           set({ primaryGoals: goals });
           const userId = get().userId;
           if (userId) {
-            safe(supabase.from("profiles").update({ primary_goal: goals.join(',') }).eq("user_id", userId));
+            safe(supabase.from("profiles").update({ primary_goal: goals[0] ?? null, primary_goals: goals }).eq("user_id", userId));
           }
         },
         setDailyFocusTarget: (min) => {
@@ -923,7 +924,7 @@ async function hydrateFromCloud(
       })),
       totalXP: profile?.total_xp ?? 0,
       userName: profile?.display_name ?? "Friend",
-      primaryGoals: (profile?.primary_goal ? profile.primary_goal.split(',') : []) as PrimaryGoal[],
+      primaryGoals: (profile?.primary_goals?.length ? profile.primary_goals : profile?.primary_goal ? [profile.primary_goal] : []) as PrimaryGoal[],
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
       onboardedAt: profile?.onboarded_at ?? undefined,
       hydrated: true, // Ensure hydration flag is set even if some data is partial
@@ -945,7 +946,8 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
       .upsert({
         user_id: userId,
         display_name: local.userName,
-        primary_goal: local.primaryGoals.length > 0 ? local.primaryGoals.join(',') : null,
+        primary_goal: local.primaryGoals.length > 0 ? local.primaryGoals[0] : null,
+        primary_goals: local.primaryGoals.length > 0 ? local.primaryGoals : null,
         daily_focus_target_min: local.dailyFocusTargetMin,
         onboarded_at: local.onboardedAt ?? null,
         total_xp: local.totalXP,
@@ -975,7 +977,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         completed: t.completed,
         completed_at: t.completedAt ?? null,
       }));
-      await supabase.from("tasks").insert(rows);
+      await supabase.from("tasks").upsert(rows, { onConflict: "id" });
     }
 
     if (local.habits.length) {
@@ -988,28 +990,42 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         target_per_week: h.targetPerWeek,
         category: h.category ?? null,
       }));
-      await supabase.from("habits").insert(rows);
+      await supabase.from("habits").upsert(rows, { onConflict: "id" });
 
-      const checkinRows = local.habits.flatMap((h) =>
-        h.history.map((date) => ({
-          user_id: userId,
-          habit_id: habitIdMap.get(h.id)!,
-          date,
-        })),
-      );
+      // Build and deduplicate checkin rows by (habit_id, date) to prevent database unique violations
+      const seenCheckins = new Set<string>();
+      const checkinRows: { user_id: string; habit_id: string; date: string }[] = [];
+
+      for (const h of local.habits) {
+        const habitId = habitIdMap.get(h.id);
+        if (!habitId) continue;
+        for (const date of h.history) {
+          const key = `${habitId}_${date}`;
+          if (!seenCheckins.has(key)) {
+            seenCheckins.add(key);
+            checkinRows.push({
+              user_id: userId,
+              habit_id: habitId,
+              date,
+            });
+          }
+        }
+      }
+
       if (checkinRows.length) {
-        inserts.push(supabase.from("habit_checkins").insert(checkinRows));
+        inserts.push(supabase.from("habit_checkins").upsert(checkinRows, { onConflict: "habit_id,date" }));
       }
     }
 
     if (local.focusSessions.length) {
       const rows = local.focusSessions.map((f) => ({
+        id: f.id,
         user_id: userId,
         task_id: f.taskId ? taskIdMap.get(f.taskId) ?? null : null,
         duration_min: f.durationMin,
         completed_at: f.completedAt,
       }));
-      inserts.push(supabase.from("focus_sessions").insert(rows));
+      inserts.push(supabase.from("focus_sessions").upsert(rows, { onConflict: "id" }));
     }
 
     if (local.healthLogs.length) {
@@ -1027,6 +1043,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
 
     if (local.xpHistory.length) {
       const rows = local.xpHistory.map((e) => ({
+        id: e.id,
         user_id: userId,
         amount: e.amount,
         reason: e.reason,
@@ -1034,7 +1051,7 @@ async function migrateLocalToCloud(userId: string, local: AppState) {
         source_type: e.sourceType,
         at: e.at,
       }));
-      inserts.push(supabase.from("xp_events").insert(rows));
+      inserts.push(supabase.from("xp_events").upsert(rows, { onConflict: "id" }));
     }
 
     // Execute remaining inserts with individual error catching to prevent one table from blocking others
