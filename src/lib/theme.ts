@@ -11,7 +11,7 @@ import { ALL_THEME_IDS, getThemeConfig, THEME_CONFIGS, type ThemeId } from "./th
 
 export type Theme = ThemeId;
 
-const KEY = "flowfit-theme";
+const KEY = "flowsphere-theme";
 
 export interface ThemeMeta {
   id: Theme;
@@ -124,7 +124,8 @@ export const injectThemeDirect = (t: Theme) => {
   root.dataset.themeMood = cfg.lighting.mood;
 };
 
-export const isThemeUnlocked = (t: Theme, totalXp: number): boolean => {
+export const isThemeUnlocked = (t: Theme, totalXp: number, userEmail?: string | null): boolean => {
+  if (userEmail === "dev@fitflow.app" || userEmail === "ishanibassin@gmail.com") return true;
   const meta = THEMES.find((m) => m.id === t);
   if (!meta) return false;
   if (meta.unlockLevel === 0) return true;

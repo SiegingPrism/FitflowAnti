@@ -61,6 +61,7 @@ const SettingsPage = () => {
         supabase.from("profiles").update({ total_xp: 0, onboarded_at: null, primary_goal: null }).eq("user_id", user.id),
       ]);
       clearLocal();
+      localStorage.removeItem("flowsphere-theme");
       localStorage.removeItem("flowfit-store");
       toast.success("Reset complete. Reloading…");
       setTimeout(() => window.location.reload(), 800);
@@ -70,7 +71,7 @@ const SettingsPage = () => {
   };
 
   const switchTheme = (t: Theme) => {
-    if (!isThemeUnlocked(t, totalXP)) {
+    if (!isThemeUnlocked(t, totalXP, user?.email)) {
       const meta = THEMES.find((m) => m.id === t)!;
       toast.error(`${meta.label} unlocks at level ${meta.unlockLevel}. You're level ${userLevel}.`);
       return;
@@ -173,7 +174,7 @@ const SettingsPage = () => {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {THEMES.map((m) => {
-              const unlocked = isThemeUnlocked(m.id, totalXP);
+               const unlocked = isThemeUnlocked(m.id, totalXP, user?.email);
               const active = theme === m.id;
               return (
                 <button
