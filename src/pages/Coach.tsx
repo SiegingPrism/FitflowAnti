@@ -133,18 +133,86 @@ const CoachPage = () => {
   const refreshAI = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-coach', {
-        body: { snapshot: buildSnapshot(state), apiKey: import.meta.env.VITE_GEMINI_API_KEY }
-      });
-      if (error) throw error;
+      const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY not configured");
+      }
 
-      setData(data);
+      const SYSTEM_PROMPT = `You are FlowSphere's AI Coach — a warm, sharp productivity coach.
+Given a snapshot of the user's recent tasks, habits, focus sessions, wellbeing logs, and their primary focus goals,
+return short, specific, actionable insights and 3 suggested next tasks.
+Crucially, you must focus your advice and task suggestions STRICTLY on the user's selected primary goals (provided as \`primaryGoals\` in the snapshot).
+Be concrete: reference actual data points (hours, counts, streaks). Avoid platitudes.
+
+IMPORTANT: You must STRICTLY restrict your insights and task suggestions to the user's selected focus modes.
+If asked or considering an unselected mode, politely remind the user of their current focus areas in the insights. Do not generate tasks for unselected modes.
+If the user's snapshot has NO \`primaryGoals\` selected or the array is empty, politely inform them in the headline/insights that they need to select their focus modes in the settings to receive tailored advice, and provide general productivity advice in the meantime based ONLY on the predefined modes below.
+
+The focus modes are:
+- "fit" (Fitness/Workout Context): Generate weekly workout splits, provide specific exercise recommendations based on available equipment, and suggest optimal rest days.
+- "learn" (Study Context): Act as a tutor/focus coach. Analyze in-app activity data (e.g., completion times) to suggest optimal study blocks. Recommend focus techniques (Pomodoro, Blurting) and specific instrumental playlists/frequencies.
+- "recover" (Recovery Context): Suggest active recovery protocols, sleep hygiene tips, stretching routines, and mindfulness exercises tailored to recent task loads.
+- "ship" (Career/Deep Work): Focus on time-blocking, email management strategies, networking tips, and preventing burnout.`;
+
+      const userPrompt = `User snapshot:\n${JSON.stringify(buildSnapshot(state), null, 2)}\n\nGenerate insights and suggestions now.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                headline: { type: "STRING", description: "One-line summary of the user's current state." },
+                insights: {
+                  type: "ARRAY",
+                  description: "3-5 short insights tied to data points.",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      title: { type: "STRING" },
+                      body: { type: "STRING" },
+                      tone: { type: "STRING", enum: ["positive", "neutral", "warning"] },
+                    },
+                    required: ["title", "body", "tone"]
+                  },
+                },
+                suggestions: {
+                  type: "ARRAY",
+                  description: "3 concrete suggested tasks.",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      title: { type: "STRING" },
+                      priority: { type: "STRING", enum: ["low", "medium", "high", "urgent"] },
+                      durationMin: { type: "NUMBER" },
+                      reason: { type: "STRING" },
+                    },
+                    required: ["title", "priority", "durationMin", "reason"]
+                  },
+                },
+              },
+              required: ["headline", "insights", "suggestions"],
+            }
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error(`Gemini API returned status ${response.status}`);
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("Empty response from AI model");
+
+      setData(JSON.parse(text));
       setAiPowered(true);
       toast.success("Coach updated with fresh AI insights");
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
       if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
-      else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("AI unavailable, showing local insights.");
       console.error("refreshAI error:", e);
       setData(ruleBasedFallback(state));
@@ -155,17 +223,86 @@ const CoachPage = () => {
   const generatePlan = async () => {
     setPlanLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('ai-weekly-plan', {
-        body: { snapshot: buildPlanSnapshot(state), apiKey: import.meta.env.VITE_GEMINI_API_KEY }
-      });
-      if (error) throw error;
+      const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY not configured");
+      }
 
-      setPlan(data);
-      toast.success(`Plan ready: ${data.theme}`);
+      const SYSTEM_PROMPT = `You are FlowSphere's AI Coach planning a focused week.
+Given the last 14 days of the user's tasks, habits, focus sessions, and wellbeing, and their primary focus goals,
+return a Mon→Sun plan with a clear theme and 1–3 focus tasks per day.
+Crucially, you must focus the plan and tasks STRICTLY on the user's selected primary goals.
+Respect peak hours, protect a recovery slot, and keep load realistic — never more than 3 tasks/day.
+Be concrete: tie tasks to actual data points (open tasks, lagging habits, focus debt).
+
+IMPORTANT: You must STRICTLY restrict your weekly plan theme, rationale, and tasks to the user's selected focus modes (provided as \`primaryGoals\` in the snapshot).
+Do not generate tasks or plans for unselected modes.
+If the user's snapshot has NO \`primaryGoals\` selected or the array is empty, politely inform them in the rationale that they need to select their focus modes in the settings to receive tailored advice, and provide a general balanced plan based ONLY on the predefined modes below.
+
+The focus modes are:
+- "fit" (Fitness/Workout Context): Generate weekly workout splits, provide specific exercise recommendations based on available equipment, and suggest optimal rest days.
+- "learn" (Study Context): Act as a tutor/focus coach. Analyze in-app activity data (e.g., peak hours) to suggest optimal study blocks. Recommend focus techniques (Pomodoro, Blurting) and specific instrumental playlists/frequencies.
+- "recover" (Recovery Context): Suggest active recovery protocols, sleep hygiene tips, stretching routines, and mindfulness exercises tailored to recent task loads.
+- "ship" (Career/Deep Work): Focus on time-blocking, email management strategies, networking tips, and preventing burnout.`;
+
+      const userPrompt = `User snapshot (last 14 days):\n${JSON.stringify(buildPlanSnapshot(state), null, 2)}\n\nGenerate the weekly plan now.`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                theme: { type: "STRING", description: "Short theme for the week (≤ 60 chars)." },
+                rationale: { type: "STRING", description: "Why this theme — reference data." },
+                days: {
+                  type: "ARRAY",
+                  description: "Exactly 7 days, Monday through Sunday in order.",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      day: { type: "STRING", enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] },
+                      intent: { type: "STRING", description: "One-line intent for this day." },
+                      tasks: {
+                        type: "ARRAY",
+                        description: "1–3 focus tasks for this day.",
+                        items: {
+                          type: "OBJECT",
+                          properties: {
+                            title: { type: "STRING" },
+                            priority: { type: "STRING", enum: ["low", "medium", "high", "urgent"] },
+                            durationMin: { type: "NUMBER" },
+                            category: { type: "STRING", enum: ["work", "personal", "health", "learning", "other"] },
+                          },
+                          required: ["title", "priority", "durationMin", "category"]
+                        },
+                      },
+                    },
+                    required: ["day", "intent", "tasks"]
+                  },
+                },
+              },
+              required: ["theme", "rationale", "days"],
+            }
+          }
+        })
+      });
+
+      if (!response.ok) throw new Error(`Gemini API returned status ${response.status}`);
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("Empty response from AI model");
+
+      setPlan(JSON.parse(text));
+      toast.success(`Plan ready: ${JSON.parse(text).theme}`);
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
       if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
-      else if (msg.includes("Rate limit") || msg.includes("429")) toast.error("Rate limited — try again in a moment.");
       else toast.error("Couldn't generate plan. Try again.");
       console.error("generatePlan error:", e);
     } finally { setPlanLoading(false); }
