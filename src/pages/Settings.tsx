@@ -23,7 +23,7 @@ const SettingsPage = () => {
   const [theme, setTheme] = useTheme();
   const userLevel = levelFromXp(totalXP).level;
   const [health, setHealth] = useState<ThemeHealthReport | null>(null);
-  const isDeveloper = user?.email === "dev@fitflow.app";
+  const isDeveloper = user?.email === "dev@fitflow.app" || user?.email === "ishanibassin@gmail.com";
 
   // Re-run the runtime check whenever the theme changes — gives an instant
   // visual confirmation that the right class landed on <html>.

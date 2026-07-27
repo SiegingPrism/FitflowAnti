@@ -122,7 +122,7 @@ const CoachPage = () => {
   const [plan, setPlan] = useState<WeeklyPlan | null>(null);
   const [aiPowered, setAiPowered] = useState(false);
   const { user } = useAuth();
-  const isDeveloper = user?.email === "dev@fitflow.app";
+  const isDeveloper = user?.email === "dev@fitflow.app" || user?.email === "ishanibassin@gmail.com";
 
   const burnout = useMemo(
     () => computeBurnout({ healthLogs: state.healthLogs, tasks: state.tasks, xpHistory: state.xpHistory }),
