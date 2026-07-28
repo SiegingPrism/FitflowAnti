@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
 import { useAuth } from "@/contexts/AuthContext";
+import { getGeminiApiKey } from "@/lib/gemini-client";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }
 interface Suggestion { title: string; priority: "low" | "medium" | "high" | "urgent"; durationMin: number; reason: string; }
@@ -133,7 +134,7 @@ const CoachPage = () => {
   const refreshAI = async () => {
     setLoading(true);
     try {
-      const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      const GEMINI_API_KEY = getGeminiApiKey();
       if (!GEMINI_API_KEY) {
         throw new Error("GEMINI_API_KEY not configured");
       }
@@ -223,7 +224,7 @@ The focus modes are:
   const generatePlan = async () => {
     setPlanLoading(true);
     try {
-      const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+      const GEMINI_API_KEY = getGeminiApiKey();
       if (!GEMINI_API_KEY) {
         throw new Error("GEMINI_API_KEY not configured");
       }
