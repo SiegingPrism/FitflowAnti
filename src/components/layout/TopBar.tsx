@@ -10,8 +10,13 @@ export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: 
   // Toggle only flips between the two free themes; unlocked themes are
   // chosen from Settings. Any custom theme leaves the toggle as a "go dark" hint.
   const toggle = () => {
-    if (theme === "light") setTheme("dark");
-    else setTheme("light");
+    if (theme === "light") {
+      const lastCustom = localStorage.getItem("flowsphere-last-custom-theme") || "dark";
+      setTheme(lastCustom as any);
+    } else {
+      localStorage.setItem("flowsphere-last-custom-theme", theme);
+      setTheme("light");
+    }
   };
   const showSun = theme !== "light";
 

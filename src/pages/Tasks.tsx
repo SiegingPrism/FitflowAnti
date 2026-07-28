@@ -134,45 +134,139 @@ const TasksPage = () => {
   );
 };
 
-const TaskRow = ({ task, onToggle, onRemove, isOverdue }: { task: Task; onToggle: () => void; onRemove: () => void; isOverdue?: boolean }) => (
-  <motion.li
-    layout
-    initial={{ opacity: 0, x: -10 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: 10 }}
-    className={cn(
-      "group flex items-center gap-3 p-3 rounded-xl border transition-smooth",
-      task.completed ? "opacity-70 border-border/40" : (isOverdue ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60 hover:bg-destructive/10" : "border-border/40 hover:border-primary/30")
-    )}
-  >
-    <button
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onToggle();
-      }}
+const TaskRow = ({ task, onToggle, onRemove, isOverdue }: { task: Task; onToggle: () => void; onRemove: () => void; isOverdue?: boolean }) => {
+  const { updateTask } = useAppStore();
+
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 10 }}
       className={cn(
-        "w-6 h-6 rounded-lg border-2 shrink-0 flex items-center justify-center transition-bounce",
-        task.completed ? "bg-gradient-primary border-transparent text-primary-foreground" : "border-border hover:border-primary",
+        "group flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 rounded-xl border transition-smooth w-full",
+        task.completed ? "opacity-70 border-border/40" : (isOverdue ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60 hover:bg-destructive/10" : "border-border/40 hover:border-primary/30")
       )}
     >
-      {task.completed && <Check className="w-4 h-4" strokeWidth={3} />}
-    </button>
-    <div className="flex-1 min-w-0">
-      <p className={cn("font-medium text-sm truncate", task.completed && "line-through")}>{task.title}</p>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
-        <Chip tone={priorityChip[task.priority]} className="!py-0">{task.priority}</Chip>
-        <span className="capitalize">{task.category}</span>
-        <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{task.durationMin}m</span>
-        {task.dueDate && <span className="inline-flex items-center gap-1"><CalIcon className="w-3 h-3" />{format(new Date(task.dueDate), "MMM d")}</span>}
+      <div className="flex items-start gap-3 w-full sm:w-auto flex-1">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onToggle();
+          }}
+          className={cn(
+            "w-6 h-6 rounded-lg border-2 shrink-0 flex items-center justify-center transition-bounce mt-0.5",
+            task.completed ? "bg-gradient-primary border-transparent text-primary-foreground" : "border-border hover:border-primary",
+          )}
+        >
+          {task.completed && <Check className="w-4 h-4" strokeWidth={3} />}
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className={cn("font-medium text-sm whitespace-normal break-words pr-2", task.completed && "line-through")}>
+            {task.title}
+          </p>
+          {task.notes && (
+            <p className="text-xs text-muted-foreground/80 mt-1 whitespace-normal break-words leading-relaxed bg-black/5 dark:bg-white/5 p-2 rounded-lg border border-border/30">
+              {task.notes}
+            </p>
+          )}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2 flex-wrap">
+            <Chip tone={priorityChip[task.priority]} className="!py-0">{task.priority}</Chip>
+            <span className="capitalize">{task.category}</span>
+            <span className="inline-flex items-center gap-1"><Clock className="w-3 h-3" />{task.durationMin}m</span>
+            {task.dueDate && <span className="inline-flex items-center gap-1"><CalIcon className="w-3 h-3" />{format(new Date(task.dueDate), "MMM d")}</span>}
+          </div>
+        </div>
       </div>
-    </div>
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary"><Zap className="w-3 h-3" />{task.xp}</span>
-    <button onClick={onRemove} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-smooth" aria-label="Delete">
-      <Trash2 className="w-4 h-4" />
-    </button>
-  </motion.li>
-);
+      <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t border-border/20 sm:border-none">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary"><Zap className="w-3 h-3" />{task.xp}</span>
+        <div className="flex items-center gap-1">
+          <EditTaskDialog task={task} onUpdate={(patch) => { updateTask(task.id, patch); toast.success("Task updated"); }} />
+          <button onClick={onRemove} className="p-1 text-muted-foreground hover:text-destructive transition-smooth" aria-label="Delete">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </motion.li>
+  );
+};
+
+import { Pencil } from "lucide-react";
+
+const EditTaskDialog = ({ task, onUpdate }: { task: Task; onUpdate: (patch: Partial<Task>) => void }) => {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(task.title);
+  const [priority, setPriority] = useState<Priority>(task.priority);
+  const [category, setCategory] = useState<TaskCategory>(task.category);
+  const [durationMin, setDurationMin] = useState(task.durationMin);
+  const [dueDate, setDueDate] = useState<Date | undefined>(task.dueDate ? new Date(task.dueDate) : undefined);
+  const [notes, setNotes] = useState(task.notes ?? "");
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="p-1 text-muted-foreground hover:text-primary transition-smooth" aria-label="Edit task">
+          <Pencil className="w-4 h-4" />
+        </button>
+      </DialogTrigger>
+      <DialogContent className="glass border-border/40">
+        <DialogHeader><DialogTitle className="font-display">Edit Task</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What needs doing?" />
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={priority} onValueChange={(v) => setPriority(v as Priority)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{priorities.map((p) => <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={category} onValueChange={(v) => setCategory(v as TaskCategory)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{categories.map((c) => <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground">Duration (min)</label>
+              <Input type="number" min={5} step={5} value={durationMin} onChange={(e) => setDurationMin(Math.max(5, +e.target.value || 25))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">Due date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start font-normal">
+                    <CalIcon className="w-4 h-4 mr-2" />
+                    {dueDate ? format(dueDate, "MMM d, yyyy") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <DatePicker mode="single" selected={dueDate} onSelect={setDueDate} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" rows={2} />
+          <Button
+            className="w-full bg-gradient-primary hover:shadow-glow"
+            disabled={!title.trim()}
+            onClick={() => {
+              onUpdate({
+                title: title.trim(),
+                priority,
+                category,
+                durationMin,
+                dueDate: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
+                notes: notes.trim() || undefined,
+              });
+              setOpen(false);
+            }}
+          >
+            Save changes
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const NewTaskDialog = ({ onCreate }: { onCreate: (t: { title: string; priority: Priority; category: TaskCategory; durationMin: number; dueDate?: string; notes?: string }) => void }) => {
   const [open, setOpen] = useState(false);

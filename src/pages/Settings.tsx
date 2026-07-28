@@ -77,6 +77,9 @@ const SettingsPage = () => {
       return;
     }
     setTheme(t);
+    if (t !== "light") {
+      localStorage.setItem("flowsphere-last-custom-theme", t);
+    }
     toast.success(`Theme: ${THEMES.find((m) => m.id === t)?.label}`);
   };
 
