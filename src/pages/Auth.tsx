@@ -113,6 +113,46 @@ const AuthPage = () => {
     }
   };
 
+  const handleDevLogin = async () => {
+    setBusy(true);
+    const devEmail = "dev@fitflow.app";
+    const devPass = "fitflowdev123";
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: devEmail,
+        password: devPass,
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes("invalid login")) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: devEmail,
+            password: devPass,
+            options: {
+              data: { display_name: "Developer" },
+            },
+          });
+          if (signUpError) throw signUpError;
+          
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: devEmail,
+            password: devPass,
+          });
+          if (signInError) throw signInError;
+          toast.success("Developer account created and logged in!");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Logged in as Developer");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Developer login failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen relative flex items-center justify-center">
@@ -152,8 +192,16 @@ const AuthPage = () => {
             <>
               <Button
                 type="button"
+                className="w-full h-11 bg-gradient-primary text-white font-semibold mb-3 hover:shadow-glow transition-all duration-300"
+                onClick={handleDevLogin}
+                disabled={busy}
+              >
+                ⚡ Agent / Developer Quick Login
+              </Button>
+              <Button
+                type="button"
                 variant="outline"
-                className="w-full h-11 font-semibold"
+                className="w-full h-11 font-semibold mb-3"
                 onClick={handleGoogle}
                 disabled={busy}
               >

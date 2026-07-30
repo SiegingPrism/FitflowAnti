@@ -10,6 +10,7 @@ import {
   CalendarDays,
   HeartPulse,
   Shield,
+  Network,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
@@ -117,6 +118,8 @@ const CoachPage = () => {
   const addTask = useAppStore((s) => s.addTask);
   const hellMode = useAppStore((s) => s.hellMode);
   const toggleHellMode = useAppStore((s) => s.toggleHellMode);
+  const selectedModel = useAppStore((s) => s.selectedModel);
+  const setSelectedModel = useAppStore((s) => s.setSelectedModel);
   const [loading, setLoading] = useState(false);
   const [planLoading, setPlanLoading] = useState(false);
   const [data, setData] = useState<CoachResponse | null>(() => ruleBasedFallback(state));
@@ -157,7 +160,7 @@ The focus modes are:
 
       const userPrompt = `User snapshot:\n${JSON.stringify(buildSnapshot(state), null, 2)}\n\nGenerate insights and suggestions now.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -248,7 +251,7 @@ The focus modes are:
 
       const userPrompt = `User snapshot (last 14 days):\n${JSON.stringify(buildPlanSnapshot(state), null, 2)}\n\nGenerate the weekly plan now.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -330,15 +333,61 @@ The focus modes are:
               The coach analyzes your tasks, focus, habits, and wellbeing to suggest your next move.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={refreshAI} disabled={loading} className="bg-gradient-primary hover:shadow-glow">
-              <Wand2 className={cn("w-4 h-4 mr-1", loading && "animate-spin")} />
-              {loading ? "Thinking…" : "Get fresh insights"}
-            </Button>
-            <Button onClick={generatePlan} disabled={planLoading} variant="outline">
-              <CalendarDays className={cn("w-4 h-4 mr-1", planLoading && "animate-spin")} />
-              {planLoading ? "Planning…" : "Generate weekly plan"}
-            </Button>
+          <div className="flex flex-col xl:flex-row items-stretch xl:items-center gap-4 mt-4 md:mt-0">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Model</span>
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="bg-background/40 backdrop-blur-md border border-border/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary font-medium min-w-[200px]"
+              >
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Reasoning)</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Latest Fast)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Latest Reasoning)</option>
+              </select>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 mt-auto">
+              <Button onClick={() => refreshAI()} disabled={loading} className="bg-gradient-primary hover:shadow-glow">
+                <Wand2 className={cn("w-4 h-4 mr-1", loading && "animate-spin")} />
+                {loading ? "Thinking…" : "Get fresh insights"}
+              </Button>
+              <Button onClick={() => generatePlan()} disabled={planLoading} variant="outline">
+                <CalendarDays className={cn("w-4 h-4 mr-1", planLoading && "animate-spin")} />
+                {planLoading ? "Planning…" : "Generate weekly plan"}
+              </Button>
+              <Button
+                onClick={async () => {
+                  setLoading(true);
+                  setPlanLoading(true);
+                  toast.info("Invoking multi-agent pipeline (Insights & Planner)...");
+                  try {
+                    await Promise.all([
+                      refreshAI().catch(e => {
+                        console.error("Insights agent error:", e);
+                        throw e;
+                      }),
+                      generatePlan().catch(e => {
+                        console.error("Planner agent error:", e);
+                        throw e;
+                      })
+                    ]);
+                    toast.success("Multi-agent optimization complete");
+                  } catch (err) {
+                    toast.error("Multi-agent execution encountered issues");
+                  } finally {
+                    setLoading(false);
+                    setPlanLoading(false);
+                  }
+                }}
+                disabled={loading || planLoading}
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold shadow-glow"
+              >
+                <Network className={cn("w-4 h-4 mr-1.5", (loading || planLoading) && "animate-spin")} />
+                {loading || planLoading ? "Running Agents..." : "Multi-Agent Run"}
+              </Button>
+            </div>
           </div>
         </div>
       </FadeIn>

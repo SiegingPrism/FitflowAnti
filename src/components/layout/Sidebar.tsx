@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3, Network, Compass } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3, Network, Compass, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -12,6 +13,13 @@ const items = [
 ];
 
 export const Sidebar = () => {
+  const { user } = useAuth();
+  const isDeveloper = user?.email === "dev@fitflow.app" || user?.email === "ishanibassin@gmail.com";
+
+  const navItems = isDeveloper 
+    ? [...items, { to: "/mind-developer", icon: Brain, label: "Mind Dev" }] 
+    : items;
+
   return (
     <aside className="hidden md:flex sticky top-0 h-screen w-20 lg:w-24 flex-col items-center justify-between py-6 z-30">
       <div className="flex flex-col items-center gap-2">
@@ -22,7 +30,7 @@ export const Sidebar = () => {
           F
         </NavLink>
         <nav className="mt-4 flex flex-col gap-1.5">
-          {items.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}

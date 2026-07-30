@@ -25,6 +25,7 @@ import SkillTree from "./pages/SkillTree.tsx";
 import Life from "./pages/Life.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
+import MindDeveloper from "./pages/MindDeveloper.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -84,6 +85,8 @@ const ProtectedRoutes = () => {
     }
   }, [session?.user, loading, bindUser]);
 
+  const isDeveloper = session?.user?.email === "dev@fitflow.app" || session?.user?.email === "ishanibassin@gmail.com";
+
   if (loading) return <FullScreenLoader />;
   if (!session) return <Navigate to="/auth" replace state={{ from: location }} />;
   if (!hydrated) return <FullScreenLoader />;
@@ -104,6 +107,7 @@ const ProtectedRoutes = () => {
         <Route path="/coach" element={<Coach />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/mind-developer" element={isDeveloper ? <MindDeveloper /> : <Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

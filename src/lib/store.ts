@@ -134,6 +134,8 @@ interface AppState {
   grantDebugXp: (amount: number, reason?: string) => void;
   hellMode: boolean;
   toggleHellMode: () => void;
+  selectedModel: string;
+  setSelectedModel: (model: string) => void;
 }
 
 // Ensure today uses local time to match UI display
@@ -158,6 +160,7 @@ const EMPTY_STATE = {
   onboardedAt: undefined as string | undefined,
   primaryGoals: [] as PrimaryGoal[],
   hellMode: false,
+  selectedModel: "gemini-1.5-flash",
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
@@ -626,6 +629,9 @@ export const useAppStore = create<AppState>()(
                 .eq("user_id", userId),
             );
           }
+        },
+        setSelectedModel: (model) => {
+          set({ selectedModel: model });
         },
 
         // ----- cloud lifecycle -----
