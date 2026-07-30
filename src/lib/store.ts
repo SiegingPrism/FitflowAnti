@@ -136,6 +136,9 @@ interface AppState {
   toggleHellMode: () => void;
   selectedModel: string;
   setSelectedModel: (model: string) => void;
+  mindDevMode: boolean;
+  setMindDevMode: (active: boolean) => void;
+  syncMindDevTasksAndHabits: (month: 1 | 2 | 3) => void;
 }
 
 // Ensure today uses local time to match UI display
@@ -161,6 +164,7 @@ const EMPTY_STATE = {
   primaryGoals: [] as PrimaryGoal[],
   hellMode: false,
   selectedModel: "gemini-1.5-flash",
+  mindDevMode: false,
 };
 
 // ---- background-safe write helpers (silent on error, won't crash UI) ----
@@ -687,6 +691,66 @@ export const useAppStore = create<AppState>()(
           }
         },
         toggleHellMode: () => set((s) => ({ hellMode: !s.hellMode })),
+        setMindDevMode: (active) => set({ mindDevMode: active }),
+        syncMindDevTasksAndHabits: (month) => {
+          const state = get();
+          
+          // 1. Set primary goals to learn & ship for cognitive development
+          set({ primaryGoals: ["learn", "ship"] });
+
+          // 2. Define the Mind Dev habits
+          const mindHabits = [
+            { name: "Read Technical Passage (30m)", emoji: "📚", color: "indigo" as const, targetPerWeek: 7, category: "learning" as const },
+            { name: "Write in Thinking Journal (30m)", emoji: "📓", color: "violet" as const, targetPerWeek: 7, category: "personal" as const },
+            { name: "Solve Hard Problems (1h)", emoji: "🧩", color: "emerald" as const, targetPerWeek: 7, category: "work" as const },
+            { name: "Practice 1 Hard Skill", emoji: "🎓", color: "cyan" as const, targetPerWeek: 7, category: "learning" as const },
+            { name: "Attention Training (Breathing)", emoji: "🧘", color: "purple" as const, targetPerWeek: 7, category: "health" as const },
+            { name: "Lazy Brain Blocker", emoji: "🚫", color: "red" as const, targetPerWeek: 7, category: "personal" as const },
+          ];
+
+          // Add habits if they don't exist yet
+          const existingHabitNames = state.habits.map(h => h.name.toLowerCase());
+          mindHabits.forEach(h => {
+            if (!existingHabitNames.includes(h.name.toLowerCase())) {
+              state.addHabit(h);
+            }
+          });
+
+          // 3. Define Month specific tasks
+          let monthTasks: Array<{ title: string; priority: "low" | "medium" | "high" | "urgent"; category: "work" | "personal" | "health" | "learning"; durationMin: number }> = [];
+          if (month === 1) {
+            monthTasks = [
+              { title: "Read difficult technical chapter", priority: "high", category: "learning", durationMin: 30 },
+              { title: "Solve 1 logic or programming problem (no AI)", priority: "medium", category: "work", durationMin: 45 },
+              { title: "Concentration session: 10m breath focus", priority: "low", category: "health", durationMin: 10 },
+              { title: "Eliminate short-form videos completely for today", priority: "high", category: "personal", durationMin: 0 }
+            ];
+          } else if (month === 2) {
+            monthTasks = [
+              { title: "4-hour Deep Focus Block", priority: "urgent", category: "work", durationMin: 240 },
+              { title: "Derive a hard mathematical / algorithmic proof", priority: "high", category: "work", durationMin: 60 },
+              { title: "Practice chess tactics for visualization", priority: "medium", category: "learning", durationMin: 30 },
+              { title: "Write weekly essay from memory", priority: "high", category: "learning", durationMin: 45 },
+              { title: "Practice mental math speed runs", priority: "low", category: "learning", durationMin: 15 }
+            ];
+          } else {
+            monthTasks = [
+              { title: "5-6 hours quality deep work block", priority: "urgent", category: "work", durationMin: 300 },
+              { title: "Build complex project from first principles (no tutorials)", priority: "high", category: "work", durationMin: 120 },
+              { title: "Explain advanced technical concept to someone without notes", priority: "medium", category: "learning", durationMin: 45 },
+              { title: "Solve complex, multi-step math/CS problem", priority: "high", category: "work", durationMin: 90 },
+              { title: "Review and refine weekly thinking notes", priority: "low", category: "personal", durationMin: 20 }
+            ];
+          }
+
+          // Add tasks if not already present
+          const existingTaskTitles = state.tasks.map(t => t.title.toLowerCase());
+          monthTasks.forEach(t => {
+            if (!existingTaskTitles.includes(t.title.toLowerCase())) {
+              state.addTask(t);
+            }
+          });
+        },
       };
     },
     {
@@ -706,6 +770,7 @@ export const useAppStore = create<AppState>()(
         dailyFocusTargetMin: s.dailyFocusTargetMin,
         claimedSlots: s.claimedSlots,
         hellMode: s.hellMode,
+        mindDevMode: s.mindDevMode,
       }),
     },
   ),

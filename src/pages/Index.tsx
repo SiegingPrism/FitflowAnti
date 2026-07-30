@@ -8,20 +8,48 @@ import { QuickHealth } from "@/components/dashboard/QuickHealth";
 import { HabitsStrip } from "@/components/dashboard/HabitsStrip";
 import { LifeBalanceRadar } from "@/components/dashboard/LifeBalanceRadar";
 import { format } from "date-fns";
-
+import { Brain } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 
 const Dashboard = () => {
   const hellMode = useAppStore((s) => s.hellMode);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
   const userName = useAppStore((s) => s.userName);
 
   return (
     <AppShell>
       <TopBar
         eyebrow="Dashboard"
-        title={hellMode ? `THE TRIAL HAS BEGUN, ${userName.toUpperCase()}.` : "Good to see you."}
+        title={
+          hellMode 
+            ? `THE TRIAL HAS BEGUN, ${userName.toUpperCase()}.` 
+            : mindDevMode 
+              ? `Mind Dev: Upgrading cognitive RAM, ${userName}...` 
+              : `Good to see you, ${userName}.`
+        }
         subtitle={format(getISTDate(), "EEEE, MMMM d")}
       />
+
+      {mindDevMode && (
+        <div className="mb-5 glass-card border-indigo-500/30 bg-indigo-950/20 relative overflow-hidden ring-1 ring-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.05)] p-4 flex items-center justify-between gap-4">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-2xl rounded-full pointer-events-none" />
+          <div className="flex items-center gap-3 relative z-10">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+              <Brain className="w-5 h-5 animate-pulse" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-semibold text-sm text-indigo-200">Mind Developer Mode active</h4>
+              <p className="text-xs text-indigo-200/60 mt-0.5 truncate">Your daily tasks and habits are customized to rebuild effort tolerance and deep logical thinking.</p>
+            </div>
+          </div>
+          <a
+            href="/mind-developer"
+            className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-smooth shrink-0 flex items-center gap-0.5"
+          >
+            Enter Workspace →
+          </a>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
         <div className="lg:col-span-8">

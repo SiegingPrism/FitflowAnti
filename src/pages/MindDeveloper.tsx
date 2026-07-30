@@ -74,12 +74,19 @@ interface ChecklistState {
 
 export default function MindDeveloper() {
   const { user } = useAuth();
-  const { grantDebugXp, selectedModel } = useAppStore();
+  const { grantDebugXp, selectedModel, mindDevMode, setMindDevMode, syncMindDevTasksAndHabits } = useAppStore();
 
   // Load and save state locally for the developer
   const [activeMonth, setActiveMonth] = useState<1 | 2 | 3>(() => {
     return Number(localStorage.getItem("mind-dev-active-month") || "1") as 1 | 2 | 3;
   });
+
+  // Automatically sync tasks and habits when month or active state changes
+  useEffect(() => {
+    if (mindDevMode) {
+      syncMindDevTasksAndHabits(activeMonth);
+    }
+  }, [activeMonth, mindDevMode]);
 
   const [aiProvider, setAiProvider] = useState<"gemini" | "chatgpt">(() => {
     return (localStorage.getItem("mind-dev-ai-provider") || "gemini") as "gemini" | "chatgpt";
@@ -561,7 +568,7 @@ Acknowledge the user's creativity, score it from 1 to 10 on lateral expansion, a
               Consistently engage in difficult mental work to rebuild your brain's tolerance for effort. Track your month's phase:
             </p>
 
-            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-muted/40 mb-5">
+            <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-muted/40 mb-3">
               {[1, 2, 3].map((month) => (
                 <button
                   key={month}
@@ -576,6 +583,31 @@ Acknowledge the user's creativity, score it from 1 to 10 on lateral expansion, a
                   Month {month}
                 </button>
               ))}
+            </div>
+
+            <div className="border-t border-border/20 pt-3 mt-3 mb-5">
+              <Button
+                size="sm"
+                className={cn(
+                  "w-full transition-smooth font-semibold flex items-center justify-center gap-1.5",
+                  mindDevMode 
+                    ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)] border border-indigo-400" 
+                    : "bg-muted hover:bg-muted/80 text-foreground"
+                )}
+                onClick={() => {
+                  const target = !mindDevMode;
+                  setMindDevMode(target);
+                  if (target) {
+                    syncMindDevTasksAndHabits(activeMonth);
+                    toast.success(`Mind Developer mode activated! Month ${activeMonth} tasks & habits synchronized.`, { icon: "🧠" });
+                  } else {
+                    toast.info("Mind Developer mode deactivated.");
+                  }
+                }}
+              >
+                <Brain className="w-4 h-4" />
+                {mindDevMode ? `Active: Month ${activeMonth} Synced` : "Activate Mind Dev Globally"}
+              </Button>
             </div>
 
             {activeMonth === 1 && (
