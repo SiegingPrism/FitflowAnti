@@ -86,7 +86,7 @@ export default function MindDeveloper() {
     if (mindDevMode) {
       syncMindDevTasksAndHabits(activeMonth);
     }
-  }, [activeMonth, mindDevMode]);
+  }, [activeMonth, mindDevMode, syncMindDevTasksAndHabits]);
 
   const [aiProvider, setAiProvider] = useState<"gemini" | "chatgpt">(() => {
     return (localStorage.getItem("mind-dev-ai-provider") || "gemini") as "gemini" | "chatgpt";
@@ -99,7 +99,7 @@ export default function MindDeveloper() {
   const [checklist, setChecklist] = useState<ChecklistState>(() => {
     const saved = localStorage.getItem("mind-dev-checklist-today");
     if (saved) {
-      try { return JSON.parse(saved); } catch (_) {}
+      try { return JSON.parse(saved); } catch (_) { /* ignore parse errors */ }
     }
     return {
       read: false,
@@ -243,7 +243,7 @@ export default function MindDeveloper() {
     return () => {
       if (focusTimerRef.current) clearInterval(focusTimerRef.current);
     };
-  }, [focusActive, focusTimeLeft]);
+  }, [focusActive, focusTimeLeft, grantDebugXp]);
 
   // Format focus time
   const formatTime = (seconds: number) => {
@@ -281,7 +281,7 @@ export default function MindDeveloper() {
     return () => {
       if (breathTimerRef.current) clearInterval(breathTimerRef.current);
     };
-  }, [breathActive, breathTimeLeft]);
+  }, [breathActive, breathTimeLeft, grantDebugXp]);
 
   // 3. Working Memory: Mental Math Mini-Game
   const [mathActive, setMathActive] = useState(false);

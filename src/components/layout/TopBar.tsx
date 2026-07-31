@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useTheme } from "@/hooks/use-theme";
 import { useAppStore } from "@/lib/store";
 
+import { ThemeId } from "@/lib/themes.config";
+
 export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: string; subtitle?: string }) => {
   const [theme, setTheme] = useTheme();
   const userName = useAppStore((s) => s.userName);
@@ -12,7 +14,7 @@ export const TopBar = ({ title, eyebrow, subtitle }: { title: string; eyebrow?: 
   const toggle = () => {
     if (theme === "light") {
       const lastCustom = localStorage.getItem("flowsphere-last-custom-theme") || "dark";
-      setTheme(lastCustom as any);
+      setTheme(lastCustom as ThemeId);
     } else {
       localStorage.setItem("flowsphere-last-custom-theme", theme);
       setTheme("light");
