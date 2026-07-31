@@ -89,7 +89,7 @@ export const AnimatedBackground = () => {
       paintAmbient(ctx, width, height, t, cfg);
 
       // 2) Animation-specific layer
-      paintAnimation(ctx, width, height, t, cfg.animation, cfg);
+      paintAnimation(ctx, width, height, t, cfg.animation, cfg, particles);
 
       // 3) Particles
       if (cfg.particles.enabled) {
@@ -189,6 +189,7 @@ function paintAmbient(ctx: CanvasRenderingContext2D, w: number, h: number, t: nu
 function paintAnimation(
   ctx: CanvasRenderingContext2D, w: number, h: number, t: number,
   kind: AnimationKind, cfg: ThemeConfig,
+  particles: any[],
 ) {
   switch (kind) {
     case "ember":    return paintEmber(ctx, w, h, t);
@@ -202,6 +203,7 @@ function paintAnimation(
     case "galaxy":   return paintGalaxy(ctx, w, h, t);
     case "borealis": return paintBorealis(ctx, w, h, t);
     case "parchment": return paintParchment(ctx, w, h, t);
+    case "mind-dev":  return paintMindDev(ctx, w, h, t, cfg, particles);
   }
 }
 
@@ -533,5 +535,41 @@ function paintParchment(ctx: CanvasRenderingContext2D, w: number, h: number, t: 
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
   }
+}
+
+// Mind Developer — Glowing neural net constellation overlay with connecting lines
+function paintMindDev(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, cfg: ThemeConfig, particles: any[]) {
+  // 1. Warm radial spotlight on the center-right (epic neural hub)
+  const cx = w * 0.7;
+  const cy = h * 0.45;
+  const r = Math.max(w, h) * 0.6;
+  const spotlight = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  spotlight.addColorStop(0, "hsla(48, 85%, 55%, 0.12)");
+  spotlight.addColorStop(0.5, "hsla(45, 90%, 40%, 0.04)");
+  spotlight.addColorStop(1, "hsla(0,0%,0%,0)");
+  ctx.fillStyle = spotlight;
+  ctx.fillRect(0, 0, w, h);
+
+  // 2. Draw golden constellation connections
+  ctx.save();
+  ctx.lineWidth = 0.8;
+  
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const p1 = particles[i];
+      const p2 = particles[j];
+      const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+      if (dist < 130) {
+        // Fade lines that are farther apart
+        const alpha = (1 - dist / 130) * 0.16;
+        ctx.strokeStyle = `hsla(48, 80%, 60%, ${alpha})`;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
 }
 

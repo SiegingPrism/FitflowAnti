@@ -7,6 +7,8 @@ import {
   type ThemeId,
 } from "@/lib/themes.config";
 
+import { useAppStore } from "@/lib/store";
+
 const STORAGE_KEY = "flowsphere-theme";
 
 // camelCase token name → CSS variable name
@@ -99,7 +101,11 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<ThemeId>(() => readStored());
+  const [savedTheme, setSavedThemeState] = useState<ThemeId>(() => readStored());
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
+
+  // Override active theme with "mind-dev" when Mind Developer Mode is active
+  const theme = mindDevMode ? "mind-dev" : savedTheme;
 
   // Inject on mount + on every change. Idempotent.
   useEffect(() => {
@@ -110,7 +116,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue && (ALL_THEME_IDS as string[]).includes(e.newValue)) {
-        setThemeState(e.newValue as ThemeId);
+        setSavedThemeState(e.newValue as ThemeId);
       }
     };
     window.addEventListener("storage", onStorage);
@@ -120,7 +126,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const setTheme = useCallback((id: ThemeId) => {
     if (!(ALL_THEME_IDS as string[]).includes(id)) return;
     localStorage.setItem(STORAGE_KEY, id);
-    setThemeState(id);
+    setSavedThemeState(id);
   }, []);
 
   const value = useMemo<ThemeContextValue>(

@@ -11,7 +11,7 @@
  * To add a new theme: append a new ThemeConfig — no UI component needs to change.
  */
 
-export type ThemeId = "light" | "dark" | "aurora" | "carbon" | "solar" | "bronze" | "ocean" | "gothic" | "nebula" | "galaxy" | "borealis" | "parchment";
+export type ThemeId = "light" | "dark" | "aurora" | "carbon" | "solar" | "bronze" | "ocean" | "gothic" | "nebula" | "galaxy" | "borealis" | "parchment" | "mind-dev";
 
 export type AnimationKind =
   | "ember"      // floating warm embers + sun beams (default dark)
@@ -24,7 +24,8 @@ export type AnimationKind =
   | "nebula"     // pink/magenta/gold nebulae drifting
   | "galaxy"     // deep purple/indigo space dust + planets
   | "borealis"   // sweeping violet/purple ribbons
-  | "parchment"; // soft paper wash + daylight particles
+  | "parchment"  // soft paper wash + daylight particles
+  | "mind-dev";  // gold neural constellation net
 
 export interface ParticleSettings {
   enabled: boolean;
@@ -965,6 +966,77 @@ export const THEME_CONFIGS: ThemeConfig[] = [
       shadowElevated: "0 15px 40px -10px hsl(25 30% 20% / 0.12)",
       shadowGlass: "0 8px 24px hsl(25 30% 20% / 0.05), inset 0 1px 0 hsl(38 60% 100% / 0.8)",
       mood: "soft",
+    },
+  },
+  {
+    id: "mind-dev",
+    label: "Mind Developer",
+    description: "Vibrant cybernetic gold theme with a dynamic constellation neural net.",
+    unlockLevel: 0,
+    swatch: "linear-gradient(135deg, hsl(45 30% 8%), hsl(48 80% 45%), hsl(48 100% 65%))",
+    scheme: "dark",
+    animation: "mind-dev",
+    particles: {
+      enabled: true,
+      count: 40,
+      hueRange: [45, 52],
+      saturation: 85,
+      lightness: 60,
+      speed: 12,
+      size: [0.6, 2.0],
+      glow: 6,
+    },
+    tokens: {
+      background: "45 25% 6%",
+      foreground: "48 20% 96%",
+      card: "45 20% 9%",
+      cardForeground: "48 20% 96%",
+      popover: "45 20% 9%",
+      popoverForeground: "48 20% 96%",
+      primary: "48 80% 50%",
+      primaryForeground: "45 25% 6%",
+      primaryGlow: "48 90% 60%",
+      secondary: "45 15% 12%",
+      secondaryForeground: "48 20% 96%",
+      muted: "45 15% 12%",
+      mutedForeground: "48 15% 70%",
+      accent: "48 85% 55%",
+      accentForeground: "45 25% 6%",
+      success: "140 70% 45%",
+      successForeground: "45 25% 6%",
+      warning: "48 90% 55%",
+      warningForeground: "45 25% 6%",
+      destructive: "0 80% 50%",
+      destructiveForeground: "48 20% 96%",
+      border: "45 20% 16%",
+      input: "45 20% 14%",
+      ring: "48 80% 50%",
+      sidebarBackground: "45 25% 4%",
+      sidebarForeground: "48 20% 85%",
+      sidebarPrimary: "48 80% 50%",
+      sidebarPrimaryForeground: "45 25% 6%",
+      sidebarAccent: "45 20% 9%",
+      sidebarAccentForeground: "48 20% 90%",
+      sidebarBorder: "45 20% 12%",
+      sidebarRing: "48 80% 50%",
+    },
+    gradients: {
+      primary: "linear-gradient(135deg, hsl(48 80% 50%), hsl(48 100% 65%))",
+      accent: "linear-gradient(135deg, hsl(48 85% 55%), hsl(45 90% 45%))",
+      warm: "linear-gradient(135deg, hsl(48 80% 50%), hsl(45 90% 60%))",
+      mesh: `
+        radial-gradient(at 10% 10%, hsl(48 80% 50% / 0.15) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, hsl(48 100% 65% / 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, hsl(45 90% 60% / 0.08) 0px, transparent 50%)`,
+    },
+    lighting: {
+      glassBg: "45 20% 9% / 0.65",
+      glassBorder: "48 80% 50% / 0.35",
+      glassShadow: "45 30% 3% / 0.8",
+      shadowGlow: "0 0 40px hsl(48 80% 50% / 0.35)",
+      shadowElevated: "0 20px 50px -15px hsl(45 80% 15% / 0.6)",
+      shadowGlass: "0 10px 30px hsl(45 30% 3% / 0.8), inset 0 1px 0 hsl(48 80% 90% / 0.15)",
+      mood: "warm",
     },
   },
 ];
