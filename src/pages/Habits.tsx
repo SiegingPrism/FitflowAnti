@@ -27,7 +27,8 @@ const computeStreak = (history: string[]) => {
 };
 
 const HabitsPage = () => {
-  const { habits, toggleHabitToday, removeHabit, addHabit } = useAppStore();
+  const { habits: allHabits, toggleHabitToday, removeHabit, addHabit, mindDevMode } = useAppStore();
+  const habits = allHabits.filter((h) => mindDevMode || !h.isMindDev);
   const today = todayKey();
 
   // 30-day grid

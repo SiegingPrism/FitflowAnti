@@ -25,7 +25,8 @@ const priorityChip: Record<Priority, "muted" | "accent" | "warning" | "destructi
 };
 
 const TasksPage = () => {
-  const { tasks, addTask, toggleTask, removeTask } = useAppStore();
+  const { tasks: allTasks, addTask, toggleTask, removeTask, mindDevMode } = useAppStore();
+  const tasks = useMemo(() => allTasks.filter((t) => mindDevMode || !t.isMindDev), [allTasks, mindDevMode]);
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<Priority | "all">("all");
   const [filterCategory, setFilterCategory] = useState<TaskCategory | "all">("all");
