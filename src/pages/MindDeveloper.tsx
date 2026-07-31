@@ -585,29 +585,53 @@ Acknowledge the user's creativity, score it from 1 to 10 on lateral expansion, a
               ))}
             </div>
 
-            <div className="border-t border-border/20 pt-3 mt-3 mb-5">
-              <Button
-                size="sm"
-                className={cn(
-                  "w-full transition-smooth font-semibold flex items-center justify-center gap-1.5",
-                  mindDevMode 
-                    ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.3)] border border-indigo-400" 
-                    : "bg-muted hover:bg-muted/80 text-foreground"
-                )}
-                onClick={() => {
-                  const target = !mindDevMode;
-                  setMindDevMode(target);
-                  if (target) {
-                    syncMindDevTasksAndHabits(activeMonth);
-                    toast.success(`Mind Developer mode activated! Month ${activeMonth} tasks & habits synchronized.`, { icon: "🧠" });
-                  } else {
-                    toast.info("Mind Developer mode deactivated.");
-                  }
-                }}
-              >
-                <Brain className="w-4 h-4" />
-                {mindDevMode ? `Active: Month ${activeMonth} Synced` : "Activate Mind Dev Globally"}
-              </Button>
+            <div className="border-t border-border/20 pt-4 mt-3 mb-5">
+              <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 shadow-[inset_0_0_10px_rgba(99,102,241,0.1)] text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 pointer-events-none" />
+                
+                <p className="text-[10px] uppercase font-bold tracking-widest text-indigo-400 mb-3.5 relative z-10 flex items-center justify-center gap-1.5">
+                  {mindDevMode ? (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
+                      <span className="text-green-400 font-semibold drop-shadow-sm">Upgrade Protocol: ACTIVE</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                      <span>Upgrade Protocol: OFFLINE</span>
+                    </>
+                  )}
+                </p>
+
+                <Button
+                  size="default"
+                  className={cn(
+                    "w-full transition-all duration-300 font-bold tracking-wide uppercase text-xs py-5 rounded-xl shadow-md border relative z-10",
+                    mindDevMode 
+                      ? "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.35)]" 
+                      : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+                  )}
+                  onClick={() => {
+                    const target = !mindDevMode;
+                    setMindDevMode(target);
+                    if (target) {
+                      syncMindDevTasksAndHabits(activeMonth);
+                      toast.success(`Protocol Initialized! Month ${activeMonth} cognitive load compiled.`, { icon: "🧠" });
+                    } else {
+                      toast.info("Protocol paused. Standard OS active.", { icon: "⏸️" });
+                    }
+                  }}
+                >
+                  <Brain className="w-4 h-4 mr-1.5 shrink-0" />
+                  {mindDevMode ? "ABORT PROTOCOL" : "START COGNITIVE UPGRADE"}
+                </Button>
+                
+                <p className="text-[9px] text-muted-foreground mt-2.5 relative z-10 leading-relaxed max-w-[220px] mx-auto">
+                  {mindDevMode 
+                    ? `Currently compiling Month ${activeMonth} habits and logical thinking tasks.` 
+                    : "Starts data synchronization, primary goals routing, and dashboard adaptations."}
+                </p>
+              </div>
             </div>
 
             {activeMonth === 1 && (

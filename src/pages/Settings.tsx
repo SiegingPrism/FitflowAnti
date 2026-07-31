@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const SettingsPage = () => {
-  const { userName, setUserName, primaryGoals, setPrimaryGoals, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal, hellMode, toggleHellMode } = useAppStore();
+  const { userName, setUserName, primaryGoals, setPrimaryGoals, totalXP, tasks, habits, focusSessions, healthLogs, xpHistory, grantDebugXp, logFocusSession, clearLocal, hellMode, toggleHellMode, mindDevMode, setMindDevMode, syncMindDevTasksAndHabits } = useAppStore();
   const { user, signOut } = useAuth();
   const [name, setName] = useState(userName);
   const [theme, setTheme] = useTheme();
@@ -307,6 +307,14 @@ const SettingsPage = () => {
                       <Brain className="w-5 h-5 text-indigo-400" />
                       <p className="text-xs uppercase tracking-widest text-indigo-400 font-bold drop-shadow-sm">Mind Developer Mode</p>
                     </div>
+                    <div className={cn(
+                      "px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider",
+                      mindDevMode 
+                        ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shadow-[0_0_10px_rgba(99,102,241,0.2)] animate-pulse" 
+                        : "bg-muted text-muted-foreground border border-border"
+                    )}>
+                      {mindDevMode ? "Active" : "Offline"}
+                    </div>
                   </div>
                   <p className="text-sm text-indigo-200 font-medium mb-2 drop-shadow-sm">
                     Cognitive Training & Lateral Reasoning Upgrade
@@ -315,13 +323,34 @@ const SettingsPage = () => {
                     Track the 90-day brain protocol and run AI-powered proof audits with Gemini or ChatGPT.
                   </p>
                 </div>
-                <div>
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    className={cn(
+                      "border transition-smooth font-semibold shadow-[0_0_15px_rgba(99,102,241,0.15)]",
+                      mindDevMode 
+                        ? "bg-indigo-500 text-white border-indigo-400 hover:bg-indigo-600 shadow-[0_0_20px_rgba(99,102,241,0.4)]" 
+                        : "bg-indigo-950/80 text-indigo-400 border-indigo-500/50 hover:bg-indigo-900 hover:border-indigo-400"
+                    )}
+                    size="sm" 
+                    onClick={() => {
+                      const target = !mindDevMode;
+                      setMindDevMode(target);
+                      if (target) {
+                        syncMindDevTasksAndHabits(1);
+                        toast.success("Mind Developer Mode Activated! Month 1 tasks & habits synchronized.", { icon: "🧠" });
+                      } else {
+                        toast.info("Mind Developer Mode Deactivated.");
+                      }
+                    }}
+                  >
+                    {mindDevMode ? "Deactivate Mind Dev" : "Activate Mind Dev"}
+                  </Button>
                   <Link to="/mind-developer">
                     <Button 
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-smooth shadow-[0_0_15px_rgba(99,102,241,0.3)] w-full sm:w-auto"
+                      className="bg-transparent text-indigo-400/80 border border-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-300 transition-smooth" 
                       size="sm"
                     >
-                      Open Mind Dev Workspace <ChevronRight className="w-4 h-4 ml-1" />
+                      Open Workspace <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </Link>
                 </div>
