@@ -438,17 +438,17 @@
   opacity: 1 !important;
 }
 
-/* Golden Glow Typography Highlights */
+/* Typography Highlights */
 .theme-mind-dev h1, 
 .theme-mind-dev h2, 
 .theme-mind-dev h3,
 .theme-mind-dev h4,
 .theme-mind-dev .font-display,
 .theme-mind-dev .number-display {
-  background: linear-gradient(135deg, #fff 30%, #d4af37 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-main) !important;
   font-family: var(--font-family) !important;
+  -webkit-text-fill-color: initial !important;
+  background: none !important;
 }
 
 .theme-mind-dev p,
@@ -457,12 +457,48 @@
   font-family: var(--font-family) !important;
 }
 
-/* Sub-cards inside card containers */
+/* Golden text highlights inside cards and sections */
+.theme-mind-dev .text-gold,
+.theme-mind-dev .gold-text,
+.theme-mind-dev [class*="text-yellow-"],
+.theme-mind-dev [class*="text-amber-"] {
+  color: var(--text-gold) !important;
+}
+
+.theme-mind-dev .text-muted-foreground {
+  color: var(--text-muted) !important;
+}
+
+/* Sub-cards inside card containers (e.g. SCORE, FOCUS, XP) with Topographic Waves */
 .theme-mind-dev .glass-card .bg-muted\/40,
-.theme-mind-dev .glass-card .bg-background\/50 {
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+.theme-mind-dev .glass-card .bg-background\/50,
+.theme-mind-dev .glass-card .bg-card\/50 {
+  background-color: rgba(18, 18, 22, 0.9) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg stroke='%23d4af37' stroke-opacity='0.08' stroke-width='0.75' fill='none'%3E%3Cpath d='M0 10c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 30c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 50c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 70c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 90c20 0 10 20 40 20s20-20 40-20 20 20 20 20'/%3E%3C/g%3E%3C/svg%3E") !important;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
   border-radius: 12px;
+}
+
+/* Main card glowing sphere decoration on the right side */
+.theme-mind-dev .glass-card.relative::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -5%;
+  transform: translateY(-50%);
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header buttons, navigation, and sidebar controls with gold outline styling */
+.theme-mind-dev button.border,
+.theme-mind-dev button[class*="border-input"],
+.theme-mind-dev button[class*="hover:bg-accent"] {
+  border: 1px solid rgba(212, 175, 55, 0.4) !important;
+  color: var(--text-gold) !important;
 }
 
 /* Primary Action Button ("Start Focus") */
