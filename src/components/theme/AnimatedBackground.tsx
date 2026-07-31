@@ -539,37 +539,65 @@ function paintParchment(ctx: CanvasRenderingContext2D, w: number, h: number, t: 
 
 // Mind Developer — Glowing neural net constellation overlay with connecting lines
 function paintMindDev(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, cfg: ThemeConfig, particles: any[]) {
-  // 1. Warm radial spotlight on the center-right (epic neural hub)
-  const cx = w * 0.7;
-  const cy = h * 0.45;
-  const r = Math.max(w, h) * 0.6;
+  // 1. Warm radial spotlight on the center-right (neural hub)
+  const cx = w * 0.75;
+  const cy = h * 0.4;
+  const r = Math.max(w, h) * 0.65;
   const spotlight = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  spotlight.addColorStop(0, "hsla(48, 85%, 55%, 0.12)");
-  spotlight.addColorStop(0.5, "hsla(45, 90%, 40%, 0.04)");
+  spotlight.addColorStop(0, "hsla(48, 80%, 45%, 0.08)");
+  spotlight.addColorStop(0.5, "hsla(45, 90%, 35%, 0.03)");
   spotlight.addColorStop(1, "hsla(0,0%,0%,0)");
   ctx.fillStyle = spotlight;
   ctx.fillRect(0, 0, w, h);
 
-  // 2. Draw golden constellation connections
+  // 2. Draw golden constellation grids (Top-Right and Bottom-Left)
   ctx.save();
+  ctx.strokeStyle = "rgba(223, 177, 91, 0.06)"; // Luxurious gold line color
   ctx.lineWidth = 0.8;
-  
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const p1 = particles[i];
-      const p2 = particles[j];
-      const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-      if (dist < 130) {
-        // Fade lines that are farther apart
-        const alpha = (1 - dist / 130) * 0.16;
-        ctx.strokeStyle = `hsla(48, 80%, 60%, ${alpha})`;
+
+  const drawGrid = (ox: number, oy: number, size: number, cols: number, rows: number) => {
+    const pts: Array<{ x: number; y: number }> = [];
+    for (let row = 0; row <= rows; row++) {
+      for (let col = 0; col <= cols; col++) {
+        // Add smooth noise so the grid slowly flexes and breathes
+        const nx = Math.sin(row * 1.5 + col * 2.2 + t * 0.2) * 10;
+        const ny = Math.cos(row * 2.5 - col * 1.2 + t * 0.15) * 10;
+        pts.push({
+          x: ox + (col / cols) * size + nx,
+          y: oy + (row / rows) * size + ny,
+        });
+      }
+    }
+
+    // Connect to form triangulation network
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const i1 = row * (cols + 1) + col;
+        const i2 = i1 + 1;
+        const i3 = (row + 1) * (cols + 1) + col;
+        const i4 = i3 + 1;
+
         ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
+        ctx.moveTo(pts[i1].x, pts[i1].y);
+        ctx.lineTo(pts[i2].x, pts[i2].y);
+        ctx.lineTo(pts[i3].x, pts[i3].y);
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(pts[i4].x, pts[i4].y);
+        ctx.lineTo(pts[i2].x, pts[i2].y);
+        ctx.lineTo(pts[i3].x, pts[i3].y);
+        ctx.closePath();
         ctx.stroke();
       }
     }
-  }
+  };
+
+  // Render meshes in the viewport corners
+  drawGrid(w - 380, -80, 450, 6, 6);
+  drawGrid(-80, h - 380, 450, 6, 6);
+
   ctx.restore();
 }
 

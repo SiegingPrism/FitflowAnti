@@ -372,25 +372,47 @@
 /* 12. Mind Developer (Cyber Gold) */
 .theme-mind-dev body {
   font-family: 'Inter', sans-serif;
-  background-color: #050505;
+  background-color: #060605;
 }
 .theme-mind-dev h1, .theme-mind-dev h2, .theme-mind-dev h3, .theme-mind-dev h4, .theme-mind-dev .font-display, .theme-mind-dev .number-display {
   font-family: 'Sora', sans-serif;
   letter-spacing: -0.02em;
+  color: #f3d79b;
 }
 .theme-mind-dev .glass-card {
-  background: rgba(10, 10, 10, 0.85);
-  border: 1.5px solid hsl(48 80% 50% / 0.7); /* Glowing gold borders precisely like the sent screenshot */
+  background: rgba(8, 8, 7, 0.85) !important;
+  border: 2px solid #dfb15b !important; /* Thick glowing gold outline border */
   border-radius: 1rem;
-  box-shadow: 0 0 35px hsl(48 80% 50% / 0.08), 
-              inset 0 1px 0 hsl(48 80% 90% / 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 
+              inset 0 0 12px rgba(223, 177, 91, 0.08), 
+              0 0 20px rgba(223, 177, 91, 0.1) !important;
+  position: relative;
 }
-.theme-mind-dev .bg-gradient-primary {
-  background: linear-gradient(135deg, hsl(48 80% 50%), hsl(48 100% 60%));
-  border: 1px solid hsl(48 100% 75% / 0.5);
-  box-shadow: 0 4px 15px hsl(48 80% 50% / 0.35);
-  color: #050505 !important;
-  font-weight: 700;
+/* Sub-cards inside hero card get matching gold borders */
+.theme-mind-dev .glass-card .bg-muted\/40,
+.theme-mind-dev .glass-card .bg-background\/50 {
+  border: 1px solid rgba(223, 177, 91, 0.3) !important;
+}
+/* Glowing orb decoration in main card backgrounds */
+.theme-mind-dev .glass-card.relative::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -5%;
+  transform: translateY(-50%);
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(223, 177, 91, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.theme-mind-dev .bg-gradient-primary,
+.theme-mind-dev button.bg-primary {
+  background: linear-gradient(135deg, #dfb15b, #bfa054) !important;
+  border: 1.5px solid #fff5e0 !important;
+  box-shadow: 0 4px 15px rgba(223, 177, 91, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  color: #060605 !important;
+  font-weight: 700 !important;
 }
 
 @keyframes bronzeShimmer {
