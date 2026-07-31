@@ -4,9 +4,12 @@ import { Trophy, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const PeakHourCard = () => {
-  const tasks = useAppStore((s) => s.tasks);
+  const allTasks = useAppStore((s) => s.tasks);
   const sessions = useAppStore((s) => s.focusSessions);
   const hellMode = useAppStore((s) => s.hellMode);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
+
+  const tasks = allTasks.filter((t) => mindDevMode || !t.isMindDev);
 
   // Compute peak completion hour from completed tasks + focus sessions
   const buckets = new Array(24).fill(0);

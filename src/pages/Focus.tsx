@@ -16,7 +16,9 @@ const FOCUS_MIN = 25;
 const BREAK_MIN = 5;
 
 const FocusPage = () => {
-  const tasks = useAppStore((s) => s.tasks);
+  const allTasks = useAppStore((s) => s.tasks);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
+  const tasks = allTasks.filter((t) => mindDevMode || !t.isMindDev);
   const logFocusSession = useAppStore((s) => s.logFocusSession);
   const focusSessions = useAppStore((s) => s.focusSessions);
 

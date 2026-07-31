@@ -5,10 +5,14 @@ import { Flame, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const HabitsStrip = () => {
-  const habits = useAppStore((s) => s.habits);
+  const allHabits = useAppStore((s) => s.habits);
   const toggle = useAppStore((s) => s.toggleHabitToday);
   const hellMode = useAppStore((s) => s.hellMode);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
   const today = todayKey();
+
+  // Filter out Mind Dev habits if Mind Dev mode is inactive
+  const habits = allHabits.filter((h) => mindDevMode || !h.isMindDev);
 
   const computeStreak = (history: string[]) => {
     if (history.length === 0) return 0;

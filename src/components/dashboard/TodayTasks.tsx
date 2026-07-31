@@ -14,10 +14,14 @@ const priorityColor: Record<Priority, string> = {
 };
 
 export const TodayTasks = () => {
-  const tasks = useAppStore((s) => s.tasks);
+  const allTasks = useAppStore((s) => s.tasks);
   const toggleTask = useAppStore((s) => s.toggleTask);
   const hellMode = useAppStore((s) => s.hellMode);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
   const todayStr = getISTTodayStr();
+  
+  // Filter out Mind Dev tasks if Mind Dev mode is inactive
+  const tasks = allTasks.filter((t) => mindDevMode || !t.isMindDev);
   const todays = tasks.filter((t) => !t.dueDate || t.dueDate.startsWith(todayStr)).slice(0, 6);
   const done = todays.filter((t) => t.completed).length;
 

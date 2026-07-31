@@ -305,6 +305,70 @@
   letter-spacing: 0.1em;
 }
 
+/* 9. Nebula (Cosmic Storm) */
+.theme-nebula body {
+  font-family: 'Jost', sans-serif;
+}
+.theme-nebula h1, .theme-nebula h2, .theme-nebula h3, .theme-nebula h4, .theme-nebula .font-display, .theme-nebula .number-display {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.theme-nebula .glass-card {
+  background: linear-gradient(135deg, hsl(320 40% 10% / 0.7), hsl(320 35% 6% / 0.8));
+  border: 1px solid hsl(340 85% 55% / 0.25);
+  box-shadow: 0 10px 40px hsl(320 50% 4% / 0.6), inset 0 1px 0 hsl(340 85% 80% / 0.1);
+  border-radius: 1.75rem;
+}
+.theme-nebula .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(340 85% 55%), hsl(310 80% 50%));
+  border: 1px solid hsl(340 90% 65% / 0.5);
+  box-shadow: 0 4px 20px hsl(340 85% 55% / 0.4);
+}
+
+/* 10. Deep Galaxy (Space) */
+.theme-galaxy body {
+  font-family: 'Inter', sans-serif;
+}
+.theme-galaxy h1, .theme-galaxy h2, .theme-galaxy h3, .theme-galaxy h4, .theme-galaxy .font-display, .theme-galaxy .number-display {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.theme-galaxy .glass-card {
+  background: linear-gradient(135deg, hsl(260 45% 10% / 0.75), hsl(260 50% 6% / 0.85));
+  border: 1px solid hsl(280 85% 55% / 0.22);
+  box-shadow: 0 12px 40px hsl(260 60% 3% / 0.7), inset 0 0 25px hsl(280 85% 55% / 0.08);
+  border-radius: 1.5rem;
+}
+.theme-galaxy .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(280 85% 55%), hsl(250 80% 50%));
+  border: 1px solid hsl(280 90% 65% / 0.5);
+  box-shadow: 0 4px 20px hsl(280 85% 55% / 0.4);
+}
+
+/* 11. Borealis Night (Aurora) */
+.theme-borealis body {
+  font-family: 'Manrope', sans-serif;
+}
+.theme-borealis h1, .theme-borealis h2, .theme-borealis h3, .theme-borealis h4, .theme-borealis .font-display, .theme-borealis .number-display {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+.theme-borealis .glass-card {
+  background: linear-gradient(135deg, hsl(270 45% 12% / 0.7), hsl(270 50% 8% / 0.8));
+  border: 1px solid hsl(145 85% 50% / 0.35);
+  box-shadow: 0 12px 40px hsl(270 60% 3% / 0.6), inset 0 0 20px hsl(145 85% 50% / 0.1);
+  border-radius: 2rem;
+}
+.theme-borealis .bg-gradient-primary {
+  background: linear-gradient(135deg, hsl(295 85% 60%), hsl(145 85% 50%));
+  border: 1px solid hsl(145 85% 50% / 0.6);
+  box-shadow: 0 4px 20px hsl(145 85% 50% / 0.4);
+}
+
 @keyframes bronzeShimmer {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

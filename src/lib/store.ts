@@ -30,6 +30,7 @@ export interface Task {
   completedAt?: string;
   createdAt: string;
   xpAwarded?: boolean;
+  isMindDev?: boolean;
 }
 
 export interface Habit {
@@ -41,6 +42,7 @@ export interface Habit {
   history: string[];
   createdAt: string;
   category?: TaskCategory;
+  isMindDev?: boolean;
 }
 
 export interface FocusSession {
@@ -700,12 +702,12 @@ export const useAppStore = create<AppState>()(
 
           // 2. Define the Mind Dev habits
           const mindHabits = [
-            { name: "Read Technical Passage (30m)", emoji: "📚", color: "indigo" as const, targetPerWeek: 7, category: "learning" as const },
-            { name: "Write in Thinking Journal (30m)", emoji: "📓", color: "violet" as const, targetPerWeek: 7, category: "personal" as const },
-            { name: "Solve Hard Problems (1h)", emoji: "🧩", color: "emerald" as const, targetPerWeek: 7, category: "work" as const },
-            { name: "Practice 1 Hard Skill", emoji: "🎓", color: "cyan" as const, targetPerWeek: 7, category: "learning" as const },
-            { name: "Attention Training (Breathing)", emoji: "🧘", color: "purple" as const, targetPerWeek: 7, category: "health" as const },
-            { name: "Lazy Brain Blocker", emoji: "🚫", color: "red" as const, targetPerWeek: 7, category: "personal" as const },
+            { name: "Read Technical Passage (30m)", emoji: "📚", color: "indigo" as const, targetPerWeek: 7, category: "learning" as const, isMindDev: true },
+            { name: "Write in Thinking Journal (30m)", emoji: "📓", color: "violet" as const, targetPerWeek: 7, category: "personal" as const, isMindDev: true },
+            { name: "Solve Hard Problems (1h)", emoji: "🧩", color: "emerald" as const, targetPerWeek: 7, category: "work" as const, isMindDev: true },
+            { name: "Practice 1 Hard Skill", emoji: "🎓", color: "cyan" as const, targetPerWeek: 7, category: "learning" as const, isMindDev: true },
+            { name: "Attention Training (Breathing)", emoji: "🧘", color: "purple" as const, targetPerWeek: 7, category: "health" as const, isMindDev: true },
+            { name: "Lazy Brain Blocker", emoji: "🚫", color: "red" as const, targetPerWeek: 7, category: "personal" as const, isMindDev: true },
           ];
 
           // Add habits if they don't exist yet
@@ -717,29 +719,29 @@ export const useAppStore = create<AppState>()(
           });
 
           // 3. Define Month specific tasks
-          let monthTasks: Array<{ title: string; priority: "low" | "medium" | "high" | "urgent"; category: "work" | "personal" | "health" | "learning"; durationMin: number }> = [];
+          let monthTasks: Array<{ title: string; priority: "low" | "medium" | "high" | "urgent"; category: "work" | "personal" | "health" | "learning"; durationMin: number; isMindDev: boolean }> = [];
           if (month === 1) {
             monthTasks = [
-              { title: "Read difficult technical chapter", priority: "high", category: "learning", durationMin: 30 },
-              { title: "Solve 1 logic or programming problem (no AI)", priority: "medium", category: "work", durationMin: 45 },
-              { title: "Concentration session: 10m breath focus", priority: "low", category: "health", durationMin: 10 },
-              { title: "Eliminate short-form videos completely for today", priority: "high", category: "personal", durationMin: 0 }
+              { title: "Read difficult technical chapter", priority: "high", category: "learning", durationMin: 30, isMindDev: true },
+              { title: "Solve 1 logic or programming problem (no AI)", priority: "medium", category: "work", durationMin: 45, isMindDev: true },
+              { title: "Concentration session: 10m breath focus", priority: "low", category: "health", durationMin: 10, isMindDev: true },
+              { title: "Eliminate short-form videos completely for today", priority: "high", category: "personal", durationMin: 0, isMindDev: true }
             ];
           } else if (month === 2) {
             monthTasks = [
-              { title: "4-hour Deep Focus Block", priority: "urgent", category: "work", durationMin: 240 },
-              { title: "Derive a hard mathematical / algorithmic proof", priority: "high", category: "work", durationMin: 60 },
-              { title: "Practice chess tactics for visualization", priority: "medium", category: "learning", durationMin: 30 },
-              { title: "Write weekly essay from memory", priority: "high", category: "learning", durationMin: 45 },
-              { title: "Practice mental math speed runs", priority: "low", category: "learning", durationMin: 15 }
+              { title: "4-hour Deep Focus Block", priority: "urgent", category: "work", durationMin: 240, isMindDev: true },
+              { title: "Derive a hard mathematical / algorithmic proof", priority: "high", category: "work", durationMin: 60, isMindDev: true },
+              { title: "Practice chess tactics for visualization", priority: "medium", category: "learning", durationMin: 30, isMindDev: true },
+              { title: "Write weekly essay from memory", priority: "high", category: "learning", durationMin: 45, isMindDev: true },
+              { title: "Practice mental math speed runs", priority: "low", category: "learning", durationMin: 15, isMindDev: true }
             ];
           } else {
             monthTasks = [
-              { title: "5-6 hours quality deep work block", priority: "urgent", category: "work", durationMin: 300 },
-              { title: "Build complex project from first principles (no tutorials)", priority: "high", category: "work", durationMin: 120 },
-              { title: "Explain advanced technical concept to someone without notes", priority: "medium", category: "learning", durationMin: 45 },
-              { title: "Solve complex, multi-step math/CS problem", priority: "high", category: "work", durationMin: 90 },
-              { title: "Review and refine weekly thinking notes", priority: "low", category: "personal", durationMin: 20 }
+              { title: "5-6 hours quality deep work block", priority: "urgent", category: "work", durationMin: 300, isMindDev: true },
+              { title: "Build complex project from first principles (no tutorials)", priority: "high", category: "work", durationMin: 120, isMindDev: true },
+              { title: "Explain advanced technical concept to someone without notes", priority: "medium", category: "learning", durationMin: 45, isMindDev: true },
+              { title: "Solve complex, multi-step math/CS problem", priority: "high", category: "work", durationMin: 90, isMindDev: true },
+              { title: "Review and refine weekly thinking notes", priority: "low", category: "personal", durationMin: 20, isMindDev: true }
             ];
           }
 

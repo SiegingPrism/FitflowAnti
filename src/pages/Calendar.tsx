@@ -9,7 +9,9 @@ import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const CalendarPage = () => {
-  const tasks = useAppStore((s) => s.tasks);
+  const allTasks = useAppStore((s) => s.tasks);
+  const mindDevMode = useAppStore((s) => s.mindDevMode);
+  const tasks = useMemo(() => allTasks.filter((t) => mindDevMode || !t.isMindDev), [allTasks, mindDevMode]);
   const [cursor, setCursor] = useState(getISTDate());
   const [selected, setSelected] = useState(getISTDate());
 
