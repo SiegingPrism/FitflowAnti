@@ -198,6 +198,10 @@ function paintAnimation(
     case "daylight": return paintDaylight(ctx, w, h, t);
     case "oceanic":  return paintOceanic(ctx, w, h, t);
     case "forge":    return paintForge(ctx, w, h, t);
+    case "nebula":   return paintNebula(ctx, w, h, t);
+    case "galaxy":   return paintGalaxy(ctx, w, h, t);
+    case "borealis": return paintBorealis(ctx, w, h, t);
+    case "parchment": return paintParchment(ctx, w, h, t);
   }
 }
 
@@ -407,3 +411,127 @@ function paintForge(ctx: CanvasRenderingContext2D, w: number, h: number, t: numb
     ctx.fillRect(0, 0, w, h);
   }
 }
+
+// Nebula — Vibrant space storm with magenta and gold clouds
+function paintNebula(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  ctx.globalCompositeOperation = "screen";
+  // Drift 3 nebula cores
+  const nebulae = [
+    { x: 0.3, y: 0.4, hue: 320, r: 0.5, speed: 0.08 },
+    { x: 0.7, y: 0.3, hue: 290, r: 0.6, speed: 0.05 },
+    { x: 0.5, y: 0.7, hue: 45, r: 0.45, speed: 0.07 }
+  ];
+
+  for (const n of nebulae) {
+    const cx = w * (n.x + Math.sin(t * n.speed) * 0.08);
+    const cy = h * (n.y + Math.cos(t * n.speed * 1.1) * 0.08);
+    const r = Math.max(w, h) * n.r;
+    
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, `hsla(${n.hue}, 95%, 55%, 0.18)`);
+    grad.addColorStop(0.4, `hsla(${n.hue + 15}, 80%, 45%, 0.08)`);
+    grad.addColorStop(1, "hsla(0,0%,0%,0)");
+    
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// Galaxy — Spiral space with rotating starlight & deep purple dust
+function paintGalaxy(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  ctx.globalCompositeOperation = "screen";
+  const cx = w * 0.65;
+  const cy = h * 0.35;
+  
+  // Outer galaxy glow
+  const r = Math.max(w, h) * 0.7;
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+  grad.addColorStop(0, "hsla(270, 95%, 45%, 0.15)");
+  grad.addColorStop(0.5, "hsla(250, 80%, 30%, 0.05)");
+  grad.addColorStop(1, "hsla(0,0%,0%,0)");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Rotating galaxy arms
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(t * 0.03);
+  for (let i = 0; i < 2; i++) {
+    ctx.rotate(Math.PI);
+    const arm = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.5);
+    arm.addColorStop(0, "hsla(280, 100%, 65%, 0.12)");
+    arm.addColorStop(0.5, "hsla(260, 90%, 50%, 0.05)");
+    arm.addColorStop(1, "hsla(0,0%,0%,0)");
+    ctx.fillStyle = arm;
+    
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    // Draw spiral-like arc
+    for (let angle = 0; angle < Math.PI * 1.5; angle += 0.1) {
+      const dist = angle * (r * 0.07);
+      ctx.lineTo(Math.cos(angle) * dist, Math.sin(angle) * dist);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// Borealis — Deep night sky with violet aurora ribbons
+function paintBorealis(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  const ribbons = [
+    { hue: 280, y: h * 0.35, amp: h * 0.16, speed: 0.35, alpha: 0.16, phase: 0 },
+    { hue: 145, y: h * 0.55, amp: h * 0.22, speed: 0.28, alpha: 0.14, phase: 2.5 },
+    { hue: 210, y: h * 0.75, amp: h * 0.18, speed: 0.45, alpha: 0.12, phase: 5.0 },
+  ];
+  
+  ctx.globalCompositeOperation = "screen";
+  for (const r of ribbons) {
+    ctx.beginPath();
+    ctx.moveTo(-100, h + 100);
+    ctx.lineTo(-100, r.y);
+    
+    for (let x = 0; x <= w + 100; x += 50) {
+      const y = r.y 
+        + Math.sin((x * 0.0025) + t * r.speed + r.phase) * r.amp
+        + Math.cos((x * 0.004) + t * r.speed * 0.7) * (r.amp * 0.45);
+      ctx.lineTo(x, y);
+    }
+    
+    ctx.lineTo(w + 100, h + 100);
+    ctx.closePath();
+    
+    const grad = ctx.createLinearGradient(0, r.y - r.amp, 0, h);
+    grad.addColorStop(0, `hsla(${r.hue}, 90%, 65%, ${r.alpha})`);
+    grad.addColorStop(0.4, `hsla(${r.hue - 15}, 80%, 55%, ${r.alpha * 0.4})`);
+    grad.addColorStop(1, "hsla(0,0%,0%,0)");
+    
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+// Parchment — Soft paper wash with drifting sunlight beams
+function paintParchment(ctx: CanvasRenderingContext2D, w: number, h: number, t: number) {
+  // Soft cream background orbs
+  const blobs = [
+    { x: 0.3, y: 0.3, r: 0.6, hue: 38, alpha: 0.2, speed: 0.05 },
+    { x: 0.7, y: 0.7, r: 0.5, hue: 25, alpha: 0.15, speed: 0.04 }
+  ];
+
+  for (const b of blobs) {
+    const cx = w * (b.x + Math.sin(t * b.speed) * 0.06);
+    const cy = h * (b.y + Math.cos(t * b.speed * 1.1) * 0.06);
+    const r = Math.max(w, h) * b.r;
+    
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    grad.addColorStop(0, `hsla(${b.hue}, 40%, 90%, ${b.alpha})`);
+    grad.addColorStop(1, "hsla(0,0%,100%,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
