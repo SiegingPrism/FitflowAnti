@@ -192,14 +192,6 @@ const AuthPage = () => {
             <>
               <Button
                 type="button"
-                className="w-full h-11 bg-gradient-primary text-white font-semibold mb-3 hover:shadow-glow transition-all duration-300"
-                onClick={handleDevLogin}
-                disabled={busy}
-              >
-                ⚡ Agent / Developer Quick Login
-              </Button>
-              <Button
-                type="button"
                 variant="outline"
                 className="w-full h-11 font-semibold mb-3"
                 onClick={handleGoogle}

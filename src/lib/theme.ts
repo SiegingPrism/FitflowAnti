@@ -27,7 +27,7 @@ export const THEMES: ThemeMeta[] = THEME_CONFIGS.map((c) => ({
   description: c.description,
   unlockLevel: c.unlockLevel,
   swatch: c.swatch,
-}));
+})).sort((a, b) => a.unlockLevel - b.unlockLevel);
 
 // ─── pub/sub ───
 type Listener = (t: Theme) => void;
