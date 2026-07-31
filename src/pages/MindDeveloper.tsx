@@ -169,7 +169,7 @@ export default function MindDeveloper() {
       const apiKey = getGeminiApiKey();
       if (!apiKey) throw new Error("Gemini API key is not configured.");
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +191,7 @@ export default function MindDeveloper() {
           "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          model: "gpt-4o-mini",
+          model: "gpt-5.5",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt }
@@ -703,8 +703,8 @@ Acknowledge the user's creativity, score it from 1 to 10 on lateral expansion, a
                   onChange={(e) => setAiProvider(e.target.value as "gemini" | "chatgpt")}
                   className="w-full px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:border-indigo-500"
                 >
-                  <option value="gemini">Gemini ({selectedModel})</option>
-                  <option value="chatgpt">ChatGPT (GPT-4o-mini)</option>
+                  <option value="gemini">Gemini 3.6</option>
+                  <option value="chatgpt">ChatGPT 5.5</option>
                 </select>
               </div>
 
