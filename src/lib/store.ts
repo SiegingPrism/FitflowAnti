@@ -649,17 +649,14 @@ export const useAppStore = create<AppState>()(
               currentSyncChannel.unsubscribe();
               currentSyncChannel = null;
             }
-            set({ userId: null, hydrated: false, ...EMPTY_STATE });
+            set({ userId: null, hydrated: true });
             return;
           }
           // Same user already loaded — skip.
           if (get().userId === userId && get().hydrated) return;
 
-          // If the user already has local onboarding date, keep hydrated as true or use optimistic loading
-          const isOptimistic = !!get().onboardedAt;
-          set({ userId, hydrated: isOptimistic });
+          set({ userId, hydrated: true });
           await hydrateFromCloud(userId, get, set);
-          set({ hydrated: true });
           setupRealtimeSync(userId, get, set);
         },
         clearLocal: () => set({ userId: null, hydrated: false, ...EMPTY_STATE }),
