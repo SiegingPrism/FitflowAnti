@@ -91,10 +91,7 @@ const ProtectedRoutes = () => {
   if (loading) return <FullScreenLoader />;
   if (!session) return <Navigate to="/auth" replace state={{ from: location }} />;
   if (!hydrated) return <FullScreenLoader />;
-  
-  // If user is logged in, ensure onboarding wizard is not erroneously forced if they already have data
-  const hasLocalActivity = useAppStore.getState().tasks.length > 0 || useAppStore.getState().habits.length > 0;
-  if (!onboardedAt && !hasLocalActivity) return <OnboardingWizard />;
+  if (!onboardedAt) return <OnboardingWizard />;
 
   return (
     <>

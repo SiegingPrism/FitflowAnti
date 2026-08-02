@@ -957,31 +957,35 @@ async function hydrateFromCloud(
       checkinsByHabit.set(c.habit_id, arr);
     }
 
+    const cloudTasks = (tasksRes.data ?? []).map((t) => ({
+      id: t.id,
+      title: t.title,
+      notes: t.notes ?? undefined,
+      priority: t.priority as Priority,
+      category: t.category as TaskCategory,
+      durationMin: t.duration_min,
+      xp: t.xp,
+      dueDate: t.due_date ?? undefined,
+      completed: t.completed,
+      completedAt: t.completed_at ?? undefined,
+      createdAt: t.created_at,
+      xpAwarded: false,
+    }));
+
+    const cloudHabits = (habitsRes.data ?? []).map((h) => ({
+      id: h.id,
+      name: h.name,
+      emoji: h.emoji,
+      color: h.color,
+      targetPerWeek: h.target_per_week,
+      category: (h.category ?? undefined) as TaskCategory | undefined,
+      history: checkinsByHabit.get(h.id) ?? [],
+      createdAt: h.created_at,
+    }));
+
     set({
-      tasks: (tasksRes.data ?? []).map((t) => ({
-        id: t.id,
-        title: t.title,
-        notes: t.notes ?? undefined,
-        priority: t.priority as Priority,
-        category: t.category as TaskCategory,
-        durationMin: t.duration_min,
-        xp: t.xp,
-        dueDate: t.due_date ?? undefined,
-        completed: t.completed,
-        completedAt: t.completed_at ?? undefined,
-        createdAt: t.created_at,
-        xpAwarded: false,
-      })),
-      habits: (habitsRes.data ?? []).map((h) => ({
-        id: h.id,
-        name: h.name,
-        emoji: h.emoji,
-        color: h.color,
-        targetPerWeek: h.target_per_week,
-        category: (h.category ?? undefined) as TaskCategory | undefined,
-        history: checkinsByHabit.get(h.id) ?? [],
-        createdAt: h.created_at,
-      })),
+      tasks: cloudTasks.length > 0 ? cloudTasks : (get().tasks.length > 0 ? get().tasks : cloudTasks),
+      habits: cloudHabits.length > 0 ? cloudHabits : (get().habits.length > 0 ? get().habits : cloudHabits),
       focusSessions: (focusRes.data ?? []).map((f) => ({
         id: f.id,
         taskId: f.task_id ?? undefined,
@@ -1006,9 +1010,9 @@ async function hydrateFromCloud(
       })),
       totalXP: profile?.total_xp ?? get().totalXP ?? 0,
       userName: profile?.display_name ?? get().userName ?? "Friend",
-      primaryGoals: (profile?.primary_goals?.length ? profile.primary_goals : profile?.primary_goal ? [profile.primary_goal] : (get().primaryGoals.length ? get().primaryGoals : ["ship"])) as PrimaryGoal[],
+      primaryGoals: (profile?.primary_goals?.length ? profile.primary_goals : profile?.primary_goal ? [profile.primary_goal] : get().primaryGoals) as PrimaryGoal[],
       dailyFocusTargetMin: profile?.daily_focus_target_min ?? get().dailyFocusTargetMin ?? 50,
-      onboardedAt: profile?.onboarded_at ?? get().onboardedAt ?? new Date().toISOString(),
+      onboardedAt: profile?.onboarded_at ?? get().onboardedAt ?? undefined,
       hydrated: true,
     });
   } catch (err) {
