@@ -11,8 +11,17 @@ export const HabitsStrip = () => {
   const mindDevMode = useAppStore((s) => s.mindDevMode);
   const today = todayKey();
 
-  // Filter out Mind Dev habits if Mind Dev mode is inactive
-  const habits = allHabits.filter((h) => mindDevMode || !h.isMindDev);
+  // Filter out Mind Dev habits if Mind Dev mode is inactive, and deduplicate by name
+  const habits = Array.from(
+    allHabits
+      .filter((h) => mindDevMode || !h.isMindDev)
+      .reduce((map, item) => {
+        const nameKey = item.name.trim().toLowerCase();
+        if (!map.has(nameKey)) map.set(nameKey, item);
+        return map;
+      }, new Map())
+      .values()
+  );
 
   const computeStreak = (history: string[]) => {
     if (history.length === 0) return 0;

@@ -896,8 +896,8 @@ async function hydrateFromCloud(
   set: (partial: Partial<AppState>) => void,
 ) {
   try {
-    // Safety timeout: increased to 10s for production sync stability
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Hydration Timeout")), 10000));
+    // Fast 2.5s timeout for instant app responsiveness
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Hydration Timeout")), 2500));
 
     const [profileRes, tasksRes, habitsRes, checkinsRes, focusRes, healthRes, xpRes] =
       await Promise.race([
@@ -983,23 +983,29 @@ async function hydrateFromCloud(
       createdAt: h.created_at,
     }));
 
-    // Deduplicate lists by ID or name to prevent duplicates
+    // Deduplicate habits strictly by ID and normalized name to eliminate duplicates completely
     const dedupeHabits = (list: Habit[]) => {
-      const seen = new Set<string>();
+      const seenIds = new Set<string>();
+      const seenNames = new Set<string>();
       return list.filter((h) => {
-        const key = h.id || h.name;
-        if (seen.has(key)) return false;
-        seen.add(key);
+        const idKey = h.id;
+        const nameKey = h.name.trim().toLowerCase();
+        if (seenIds.has(idKey) || seenNames.has(nameKey)) return false;
+        seenIds.add(idKey);
+        seenNames.add(nameKey);
         return true;
       });
     };
 
     const dedupeTasks = (list: Task[]) => {
-      const seen = new Set<string>();
+      const seenIds = new Set<string>();
+      const seenTitles = new Set<string>();
       return list.filter((t) => {
-        const key = t.id || t.title;
-        if (seen.has(key)) return false;
-        seen.add(key);
+        const idKey = t.id;
+        const titleKey = t.title.trim().toLowerCase();
+        if (seenIds.has(idKey) || seenTitles.has(titleKey)) return false;
+        seenIds.add(idKey);
+        seenTitles.add(titleKey);
         return true;
       });
     };
