@@ -198,9 +198,10 @@ You must return a valid JSON structure matching the schema.`;
       setSelectedHabits(data.habits);
       setSelectedMilestones(data.milestones);
       toast.success("AI plan successfully processed!");
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast.error(e.message || "Failed to process plan. Please try again.");
+      const errorMessage = e instanceof Error ? e.message : "Failed to process plan. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setParsing(false);
     }
