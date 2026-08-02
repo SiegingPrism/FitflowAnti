@@ -260,6 +260,18 @@ const AuthPage = () => {
                 </>
               )}
             </Button>
+            
+            {mode === "signin" && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleDevLogin}
+                disabled={busy}
+                className="w-full text-xs text-muted-foreground hover:text-foreground mt-1"
+              >
+                🛠️ Quick Developer Login
+              </Button>
+            )}
           </form>
 
           <div className="mt-5 flex items-center justify-between text-xs">

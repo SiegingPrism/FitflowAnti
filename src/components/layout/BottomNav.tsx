@@ -1,13 +1,13 @@
 import { NavLink } from "react-router-dom";
-import { Home, ListChecks, Timer, Sparkles, Compass, Brain } from "lucide-react";
+import { Home, ListChecks, Timer, Sparkles, Compass, Brain, Clipboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
 const items = [
   { to: "/", icon: Home, label: "Home" },
   { to: "/tasks", icon: ListChecks, label: "Tasks" },
+  { to: "/import", icon: Clipboard, label: "Import" },
   { to: "/life", icon: Compass, label: "Life" },
-  { to: "/focus", icon: Timer, label: "Focus" },
   { to: "/coach", icon: Sparkles, label: "AI" },
 ];
 

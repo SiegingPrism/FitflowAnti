@@ -582,14 +582,14 @@ export const useAppStore = create<AppState>()(
             safe(
               supabase
                 .from("profiles")
-                .update({
+                .upsert({
+                  user_id: userId,
                   display_name: userName,
                   primary_goal: primaryGoals[0] ?? null,
                   primary_goals: primaryGoals,
                   daily_focus_target_min: dailyFocusTargetMin,
                   onboarded_at: now,
-                })
-                .eq("user_id", userId),
+                }, { onConflict: "user_id" }),
             );
             if (newHabits.length) {
               safe(
@@ -614,14 +614,14 @@ export const useAppStore = create<AppState>()(
           set({ userName: name });
           const userId = get().userId;
           if (userId) {
-            safe(supabase.from("profiles").update({ display_name: name }).eq("user_id", userId));
+            safe(supabase.from("profiles").upsert({ user_id: userId, display_name: name }, { onConflict: "user_id" }));
           }
         },
         setPrimaryGoals: (goals) => {
           set({ primaryGoals: goals });
           const userId = get().userId;
           if (userId) {
-            safe(supabase.from("profiles").update({ primary_goal: goals[0] ?? null, primary_goals: goals }).eq("user_id", userId));
+            safe(supabase.from("profiles").upsert({ user_id: userId, primary_goal: goals[0] ?? null, primary_goals: goals }, { onConflict: "user_id" }));
           }
         },
         setDailyFocusTarget: (min) => {
@@ -631,8 +631,7 @@ export const useAppStore = create<AppState>()(
             safe(
               supabase
                 .from("profiles")
-                .update({ daily_focus_target_min: min })
-                .eq("user_id", userId),
+                .upsert({ user_id: userId, daily_focus_target_min: min }, { onConflict: "user_id" }),
             );
           }
         },
@@ -653,7 +652,9 @@ export const useAppStore = create<AppState>()(
           // Same user already loaded — skip.
           if (get().userId === userId && get().hydrated) return;
 
-          set({ userId, hydrated: false });
+          // If the user already has local onboarding date, keep hydrated as true or use optimistic loading
+          const isOptimistic = !!get().onboardedAt;
+          set({ userId, hydrated: isOptimistic });
           await hydrateFromCloud(userId, get, set);
           set({ hydrated: true });
           setupRealtimeSync(userId, get, set);
@@ -914,6 +915,14 @@ async function hydrateFromCloud(
 
     console.log("[hydrate] Cloud data retrieved successfully.");
 
+    // Prevent wiping local state if queries fail due to auth, network, or RLS errors
+    const queryError = profileRes.error || tasksRes.error || habitsRes.error;
+    if (queryError) {
+      console.warn("[hydrate] Supabase query returned error, using local cache fallback:", queryError);
+      set({ hydrated: true });
+      return;
+    }
+
     const profile = profileRes.data;
 
     // First-login migration: if cloud is empty AND localStorage has data, push it up.
@@ -995,12 +1004,12 @@ async function hydrateFromCloud(
         sourceType: e.source_type as XPEvent["sourceType"],
         at: e.at,
       })),
-      totalXP: profile?.total_xp ?? 0,
-      userName: profile?.display_name ?? "Friend",
-      primaryGoals: (profile?.primary_goals?.length ? profile.primary_goals : profile?.primary_goal ? [profile.primary_goal] : []) as PrimaryGoal[],
-      dailyFocusTargetMin: profile?.daily_focus_target_min ?? 50,
-      onboardedAt: profile?.onboarded_at ?? undefined,
-      hydrated: true, // Ensure hydration flag is set even if some data is partial
+      totalXP: profile?.total_xp ?? get().totalXP ?? 0,
+      userName: profile?.display_name ?? get().userName ?? "Friend",
+      primaryGoals: (profile?.primary_goals?.length ? profile.primary_goals : profile?.primary_goal ? [profile.primary_goal] : (get().primaryGoals.length ? get().primaryGoals : ["ship"])) as PrimaryGoal[],
+      dailyFocusTargetMin: profile?.daily_focus_target_min ?? get().dailyFocusTargetMin ?? 50,
+      onboardedAt: profile?.onboarded_at ?? get().onboardedAt ?? new Date().toISOString(),
+      hydrated: true,
     });
   } catch (err) {
     console.error("[hydrate] failed:", err);

@@ -26,6 +26,7 @@ import Life from "./pages/Life.tsx";
 import Auth from "./pages/Auth.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import MindDeveloper from "./pages/MindDeveloper.tsx";
+import Import from "./pages/Import.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
@@ -90,7 +91,10 @@ const ProtectedRoutes = () => {
   if (loading) return <FullScreenLoader />;
   if (!session) return <Navigate to="/auth" replace state={{ from: location }} />;
   if (!hydrated) return <FullScreenLoader />;
-  if (!onboardedAt) return <OnboardingWizard />;
+  
+  // If user is logged in, ensure onboarding wizard is not erroneously forced if they already have data
+  const hasLocalActivity = useAppStore.getState().tasks.length > 0 || useAppStore.getState().habits.length > 0;
+  if (!onboardedAt && !hasLocalActivity) return <OnboardingWizard />;
 
   return (
     <>
@@ -105,6 +109,7 @@ const ProtectedRoutes = () => {
         <Route path="/rewards" element={<Rewards />} />
         <Route path="/skill-tree" element={<SkillTree />} />
         <Route path="/coach" element={<Coach />} />
+        <Route path="/import" element={<Import />} />
         <Route path="/insights" element={<Insights />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/mind-developer" element={isDeveloper ? <MindDeveloper /> : <Navigate to="/" replace />} />

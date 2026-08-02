@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3, Network, Compass, Brain } from "lucide-react";
+import { Home, ListChecks, Timer, Trophy, Sparkles, Settings, CalendarDays, Activity, BarChart3, Network, Compass, Brain, Clipboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -8,6 +8,7 @@ const items = [
   { to: "/tasks", icon: ListChecks, label: "Tasks" },
   { to: "/focus", icon: Timer, label: "Focus" },
   { to: "/habits", icon: Activity, label: "Habits" },
+  { to: "/import", icon: Clipboard, label: "Import Plan" },
   { to: "/life", icon: Compass, label: "Cross-Life" },
   { to: "/coach", icon: Sparkles, label: "AI Coach" },
 ];
