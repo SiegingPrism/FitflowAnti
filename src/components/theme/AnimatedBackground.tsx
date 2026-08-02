@@ -76,10 +76,23 @@ export const AnimatedBackground = () => {
     let last = performance.now();
     let raf = 0;
     let t = 0;
+    const fpsInterval = 1000 / 30; // Caps animation at 30 FPS for high performance
 
     const draw = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000); // clamp to 50ms
-      last = now;
+      // Skip calculations if document is not visible (tab backgrounded)
+      if (document.visibilityState === "hidden") {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+
+      const elapsed = now - last;
+      if (elapsed < fpsInterval) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
+
+      const dt = Math.min(0.05, elapsed / 1000); // clamp to 50ms
+      last = now - (elapsed % fpsInterval);
       t += dt;
 
       const cfg = cfgRef.current;
@@ -98,14 +111,14 @@ export const AnimatedBackground = () => {
           p.x += p.vx;
           p.y += p.vy;
           // gentle horizontal sway
-          p.x += Math.sin((t + p.hue) * 0.6) * 0.15;
+          p.x += Math.sin(t + p.hue) * 0.08;
 
-          if (p.life > p.max || p.y < -10 || p.x < -10 || p.x > width + 10) {
-            Object.assign(p, spawn(cfg), { y: height + 10 });
+          if (p.life >= p.max || p.x < 0 || p.x > width || p.y < 0 || p.y > height) {
+            Object.assign(p, spawn(cfg));
           }
 
-          const fade = 1 - p.life / p.max;
-          const alpha = Math.max(0, fade) * 0.75;
+          const pct = Math.sin((p.life / p.max) * Math.PI);
+          const alpha = Math.max(0, Math.min(pct * cfg.particles.opacity, 1));
           ctx.beginPath();
           ctx.fillStyle = `hsla(${p.hue}, ${cfg.particles.saturation}%, ${cfg.particles.lightness}%, ${alpha})`;
           ctx.shadowColor = `hsla(${p.hue}, ${cfg.particles.saturation}%, ${cfg.particles.lightness}%, ${alpha})`;
@@ -126,9 +139,17 @@ export const AnimatedBackground = () => {
       raf = requestAnimationFrame(draw);
     }
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        last = performance.now();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
