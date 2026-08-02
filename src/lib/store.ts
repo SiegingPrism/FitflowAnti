@@ -562,7 +562,10 @@ export const useAppStore = create<AppState>()(
 
         completeOnboarding: ({ userName, primaryGoals, dailyFocusTargetMin, starterHabits }) => {
           const now = getISTISOString();
-          const newHabits: Habit[] = starterHabits.map((h) => ({
+          const existingNames = new Set(get().habits.map((h) => h.name.toLowerCase()));
+          const uniqueStarters = starterHabits.filter((h) => !existingNames.has(h.name.toLowerCase()));
+          
+          const newHabits: Habit[] = uniqueStarters.map((h) => ({
             ...h,
             id: uid(),
             history: [],
@@ -983,9 +986,33 @@ async function hydrateFromCloud(
       createdAt: h.created_at,
     }));
 
+    // Deduplicate lists by ID or name to prevent duplicates
+    const dedupeHabits = (list: Habit[]) => {
+      const seen = new Set<string>();
+      return list.filter((h) => {
+        const key = h.id || h.name;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    const dedupeTasks = (list: Task[]) => {
+      const seen = new Set<string>();
+      return list.filter((t) => {
+        const key = t.id || t.title;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+
+    const finalTasks = cloudTasks.length > 0 ? cloudTasks : (get().tasks.length > 0 ? get().tasks : cloudTasks);
+    const finalHabits = cloudHabits.length > 0 ? cloudHabits : (get().habits.length > 0 ? get().habits : cloudHabits);
+
     set({
-      tasks: cloudTasks.length > 0 ? cloudTasks : (get().tasks.length > 0 ? get().tasks : cloudTasks),
-      habits: cloudHabits.length > 0 ? cloudHabits : (get().habits.length > 0 ? get().habits : cloudHabits),
+      tasks: dedupeTasks(finalTasks),
+      habits: dedupeHabits(finalHabits),
       focusSessions: (focusRes.data ?? []).map((f) => ({
         id: f.id,
         taskId: f.task_id ?? undefined,
