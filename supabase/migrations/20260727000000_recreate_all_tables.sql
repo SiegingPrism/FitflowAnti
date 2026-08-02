@@ -396,9 +396,20 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'Habit already checked in for today');
   END;
 
-  -- Record XP event
-  INSERT INTO public.xp_events (user_id, amount, reason, branch, source_type)
-  VALUES (v_user_id, v_xp_amount, 'Completed habit', COALESCE(v_category, 'other'), 'habit');
+  -- Record XP event with valid branch constraint value
+  DECLARE
+    v_branch TEXT := 'craft';
+  BEGIN
+    IF v_category IN ('focus', 'work') THEN v_branch := 'focus';
+    ELSIF v_category IN ('health', 'fitness', 'mental_health') THEN v_branch := 'health';
+    ELSIF v_category IN ('learning', 'study') THEN v_branch := 'learning';
+    ELSIF v_category IN ('craft', 'personal') THEN v_branch := 'craft';
+    ELSE v_branch := 'craft';
+    END IF;
+
+    INSERT INTO public.xp_events (user_id, amount, reason, branch, source_type)
+    VALUES (v_user_id, v_xp_amount, 'Completed habit', v_branch, 'habit');
+  END;
 
   -- Atomically add to profile total
   PERFORM public.atomic_add_xp(v_user_id, v_xp_amount);

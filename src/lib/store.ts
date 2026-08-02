@@ -408,10 +408,10 @@ export const useAppStore = create<AppState>()(
               const alreadyDone = res && res.message === 'already_done';
 
               if (error || (res && res.success === false)) {
-                // SELF-HEALING: If habit is missing (FK error 23503), try to sync it and retry once
+                // SELF-HEALING 1: If habit is missing (FK error 23503), try to sync habit row first
                 const isMissing = error && (error as { code?: string }).code === '23503';
                 if (isMissing) {
-                  console.log("[Habit] Habit missing from cloud, self-healing...");
+                  console.log("[Habit] Habit missing from cloud, self-healing habit row...");
                   await supabase.from("habits").insert({
                     id,
                     user_id: userId,
@@ -421,13 +421,22 @@ export const useAppStore = create<AppState>()(
                     target_per_week: habit.targetPerWeek,
                     category: habit.category ?? null,
                   });
-                  // Retry check-in
-                  const retry = await supabase.rpc('checkin_habit', { p_habit_id: id, p_date: t });
-                  if (!retry.error) return award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, true);
                 }
 
-                console.error("[habit checkin] failed:", error || res?.message);
-                // Rollback optimistic update
+                // FALLBACK: Directly insert into habit_checkins table if RPC fails (e.g. legacy DB RPC branch check constraint error)
+                const { error: directErr } = await supabase.from("habit_checkins").insert({
+                  user_id: userId,
+                  habit_id: id,
+                  date: t,
+                });
+
+                if (!directErr || directErr.code === '23505') { // 23505 is unique violation (already checked in)
+                  award({ type: "habit", emoji: habit.emoji, category: habit.category }, `Habit: ${habit.name}`, false);
+                  return;
+                }
+
+                console.error("[habit checkin] RPC & direct checkin failed:", error || directErr);
+                // Rollback optimistic update if both RPC & direct insert failed
                 set((s) => ({
                   habits: s.habits.map((h) => h.id === id ? { ...h, history: h.history.filter(d => d !== t) } : h),
                 }));
