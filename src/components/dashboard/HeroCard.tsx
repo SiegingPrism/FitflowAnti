@@ -2,7 +2,8 @@ import { getISTDate, getISTTodayStr } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAppStore, getLevel } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
+import { levelFromXp } from "@/lib/gamification";
 import { format } from "date-fns";
 
 const greeting = () => {
@@ -46,7 +47,9 @@ export const HeroCard = () => {
     .reduce((acc, s) => acc + s.durationMin, 0);
   const score = Math.min(99, Math.round(completionRate * 0.6 + Math.min(focusToday, 120) * 0.3 + Math.min(totalXP, 200) * 0.05));
   const state = productivityState(completionRate);
-  const { level, xpInLevel, xpToNext } = getLevel(totalXP);
+  const levelInfo = levelFromXp(totalXP);
+  const displayLevel = Math.max(1, levelInfo.level);
+  const span = levelInfo.xpForNext - levelInfo.xpForCurrent;
 
   return (
     <motion.section
@@ -115,7 +118,7 @@ export const HeroCard = () => {
         <div className="grid grid-cols-3 gap-3 pt-5 border-t border-border/40">
           <Stat label="Score" value={score.toString()} sub={`${completionRate}% done`} />
           <Stat label="Focus" value={`${focusToday}m`} sub="today" />
-          <Stat label="XP" value={totalXP.toString()} sub={`${xpInLevel}/${xpToNext} → L${level + 1}`} />
+          <Stat label="XP" value={totalXP.toString()} sub={`${levelInfo.xpInLevel}/${span} → L${displayLevel + 1}`} />
         </div>
       </div>
     </motion.section>

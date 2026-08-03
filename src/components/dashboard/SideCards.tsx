@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { useAppStore, getLevel } from "@/lib/store";
+import { useAppStore } from "@/lib/store";
+import { levelFromXp } from "@/lib/gamification";
 import { Trophy, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -73,8 +74,10 @@ export const PeakHourCard = () => {
 export const LevelCard = () => {
   const totalXP = useAppStore((s) => s.totalXP);
   const hellMode = useAppStore((s) => s.hellMode);
-  const { level, xpInLevel, xpToNext } = getLevel(totalXP);
-  const pct = Math.round((xpInLevel / xpToNext) * 100);
+  const levelInfo = levelFromXp(totalXP);
+  const displayLevel = Math.max(1, levelInfo.level);
+  const pct = Math.round(levelInfo.progress * 100);
+  const span = levelInfo.xpForNext - levelInfo.xpForCurrent;
 
   return (
     <motion.article
@@ -93,14 +96,14 @@ export const LevelCard = () => {
             {hellMode ? (
               <p className="text-xs text-red-500 font-bold mt-1 tracking-wider uppercase">DEBT: 6,668 XP UNTIL DEGRADATION</p>
             ) : (
-              <p className="number-display text-3xl mt-1">Level {level}</p>
+              <p className="number-display text-3xl mt-1">Level {displayLevel}</p>
             )}
           </div>
           <div className="w-10 h-10 rounded-xl bg-gradient-warm flex items-center justify-center shadow-elevated">
             <Trophy className="w-5 h-5 text-warning-foreground" />
           </div>
         </div>
-        {!hellMode && <p className="text-sm text-muted-foreground mb-3">{xpToNext - xpInLevel} XP until level {level + 1}</p>}
+        {!hellMode && <p className="text-sm text-muted-foreground mb-3">{levelInfo.xpToNext} XP until level {displayLevel + 1}</p>}
         <div className="h-2.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
@@ -110,8 +113,8 @@ export const LevelCard = () => {
           />
         </div>
         <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>{xpInLevel} XP</span>
-          <span>{xpToNext} XP</span>
+          <span>{levelInfo.xpInLevel} XP</span>
+          <span>{span} XP</span>
         </div>
       </div>
     </motion.article>
