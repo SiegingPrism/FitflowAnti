@@ -210,7 +210,7 @@ function paintAmbient(ctx: CanvasRenderingContext2D, w: number, h: number, t: nu
 function paintAnimation(
   ctx: CanvasRenderingContext2D, w: number, h: number, t: number,
   kind: AnimationKind, cfg: ThemeConfig,
-  particles: any[],
+  particles: { x: number; y: number; vx: number; vy: number; r: number; hue: number; life: number; max: number }[],
 ) {
   switch (kind) {
     case "ember":    return paintEmber(ctx, w, h, t);
@@ -559,7 +559,7 @@ function paintParchment(ctx: CanvasRenderingContext2D, w: number, h: number, t: 
 }
 
 // Mind Developer — Glowing neural net constellation overlay with connecting lines
-function paintMindDev(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, cfg: ThemeConfig, particles: any[]) {
+function paintMindDev(ctx: CanvasRenderingContext2D, w: number, h: number, t: number, cfg: ThemeConfig, particles: { x: number; y: number; vx: number; vy: number; r: number; hue: number; life: number; max: number }[]) {
   // 1. Warm radial spotlight on the center-right (neural hub)
   const cx = w * 0.75;
   const cy = h * 0.4;
