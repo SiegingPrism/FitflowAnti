@@ -169,7 +169,7 @@ export default function MindDeveloper() {
       const apiKey = getGeminiApiKey();
       if (!apiKey) throw new Error("Gemini API key is not configured.");
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6:generateContent?key=${apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

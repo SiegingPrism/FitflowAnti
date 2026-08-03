@@ -50,13 +50,23 @@ const buildSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
   return {
     primaryGoals: state.primaryGoals,
     today: todayKey,
+    userName: state.userName,
+    hellMode: state.hellMode,
+    dailyFocusTargetMin: state.dailyFocusTargetMin,
+    totalXP: state.totalXP,
+    // Send all raw data
+    tasks: state.tasks,
+    habits: state.habits,
+    focusSessions: state.focusSessions,
+    healthLogs: state.healthLogs,
+    xpHistory: state.xpHistory,
+    // Helper/backwards-compatible computed fields:
     openTasks: state.tasks.filter((t) => !t.completed).slice(0, 10).map((t) => ({ title: t.title, priority: t.priority, category: t.category, durationMin: t.durationMin })),
     completedLast7Days: state.tasks.filter((t) => t.completedAt && last7.includes(t.completedAt.slice(0, 10))).length,
     peakHourBucket: completionByHour.indexOf(Math.max(...completionByHour)),
     focusMinutesLast7Days: state.focusSessions.filter((s) => last7.includes(s.completedAt.slice(0, 10))).reduce((a, s) => a + s.durationMin, 0),
-    habits: habitConsistency,
+    habitsConsistency: habitConsistency,
     health: todayHealth ?? null,
-    totalXP: state.totalXP,
   };
 };
 
@@ -73,13 +83,23 @@ const buildPlanSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
   return {
     primaryGoals: state.primaryGoals,
     dailyFocusTargetMin: state.dailyFocusTargetMin,
+    totalXP: state.totalXP,
+    userName: state.userName,
+    hellMode: state.hellMode,
+    // Send all raw data
+    tasks: state.tasks,
+    habits: state.habits,
+    focusSessions: state.focusSessions,
+    healthLogs: state.healthLogs,
+    xpHistory: state.xpHistory,
+    // Helper/backwards-compatible computed fields:
     openTasks: state.tasks.filter((t) => !t.completed).map((t) => ({
       title: t.title, priority: t.priority, category: t.category, durationMin: t.durationMin, dueDate: t.dueDate,
     })),
     completedLast14Days: state.tasks
       .filter((t) => t.completedAt && last14.includes(t.completedAt.slice(0, 10)))
       .map((t) => ({ title: t.title, category: t.category, completedAt: t.completedAt })),
-    habits: state.habits.map((h) => ({
+    habitsConsistency: state.habits.map((h) => ({
       name: h.name,
       last14Done: last14.filter((d) => h.history.includes(d)).length,
       target: h.targetPerWeek,
@@ -89,7 +109,6 @@ const buildPlanSnapshot = (state: ReturnType<typeof useAppStore.getState>) => {
       .map((s) => ({ durationMin: s.durationMin, completedAt: s.completedAt })),
     healthLast14Days: state.healthLogs.filter((l) => last14.includes(l.date)),
     peakHours,
-    totalXP: state.totalXP,
   };
 };
 
@@ -341,11 +360,9 @@ The focus modes are:
                 onChange={(e) => setSelectedModel(e.target.value)}
                 className="bg-background/40 backdrop-blur-md border border-border/40 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary font-medium min-w-[200px]"
               >
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Reasoning)</option>
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash (Next-Gen)</option>
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Latest Fast)</option>
-                <option value="gemini-2.5-pro">Gemini 2.5 Pro (Latest Reasoning)</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash (Ultra Fast)</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Latest)</option>
               </select>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 mt-auto">

@@ -165,7 +165,7 @@ const EMPTY_STATE = {
   onboardedAt: undefined as string | undefined,
   primaryGoals: [] as PrimaryGoal[],
   hellMode: false,
-  selectedModel: "gemini-1.5-flash",
+  selectedModel: "gemini-3.5-flash",
   mindDevMode: false,
 };
 
