@@ -57,5 +57,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Ensure execution permissions for auth service role and public roles
-GRANT EXECUTE ON FUNCTION public.handle_new_user() TO anon, authenticated, service_role, postgres;
+-- Ensure execution permissions for auth service role, postgres, and supabase_auth_admin
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role, postgres, supabase_auth_admin;
+GRANT ALL ON TABLE public.profiles TO postgres, service_role, supabase_auth_admin;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO anon, authenticated, service_role, postgres, supabase_auth_admin;
