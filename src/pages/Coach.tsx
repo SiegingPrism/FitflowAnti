@@ -23,7 +23,7 @@ import { format } from "date-fns";
 import { cn, getPastDays } from "@/lib/utils";
 import { computeBurnout, recoveryMission } from "@/lib/burnout";
 import { useAuth } from "@/contexts/AuthContext";
-import { getGeminiApiKey } from "@/lib/gemini-client";
+import { geminiFetch } from "@/lib/gemini-client";
 
 interface Insight { title: string; body: string; tone: "positive" | "neutral" | "warning"; }
 interface Suggestion { title: string; priority: "low" | "medium" | "high" | "urgent"; durationMin: number; reason: string; }
@@ -156,10 +156,6 @@ const CoachPage = () => {
   const refreshAI = async () => {
     setLoading(true);
     try {
-      const GEMINI_API_KEY = getGeminiApiKey();
-      if (!GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY not configured");
-      }
 
       const SYSTEM_PROMPT = `You are FlowSphere's AI Coach — a warm, sharp productivity coach.
 Given a snapshot of the user's recent tasks, habits, focus sessions, wellbeing logs, and their primary focus goals,
@@ -181,7 +177,7 @@ The focus modes are:
 
       const userPrompt = `User snapshot:\n${JSON.stringify(buildSnapshot(state), null, 2)}\n\nGenerate insights and suggestions now.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await geminiFetch(selectedModel, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -237,7 +233,7 @@ The focus modes are:
       toast.success("Coach updated with fresh AI insights");
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
-      if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
+      if (msg.includes("signed-in cloud account")) toast.error(msg);
       else toast.error("AI unavailable, showing local insights.");
       console.error("refreshAI error:", e);
       setData(ruleBasedFallback(state));
@@ -248,10 +244,6 @@ The focus modes are:
   const generatePlan = async () => {
     setPlanLoading(true);
     try {
-      const GEMINI_API_KEY = getGeminiApiKey();
-      if (!GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY not configured");
-      }
 
       const SYSTEM_PROMPT = `You are FlowSphere's AI Coach planning a focused week.
 Given the last 14 days of the user's tasks, habits, focus sessions, and wellbeing, and their primary focus goals,
@@ -272,7 +264,7 @@ The focus modes are:
 
       const userPrompt = `User snapshot (last 14 days):\n${JSON.stringify(buildPlanSnapshot(state), null, 2)}\n\nGenerate the weekly plan now.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await geminiFetch(selectedModel, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -327,7 +319,7 @@ The focus modes are:
       toast.success(`Plan ready: ${JSON.parse(text).theme}`);
     } catch (e: unknown) {
       const msg = (e as { message?: string })?.message ?? "Unknown error";
-      if (msg.includes("GEMINI_API_KEY")) toast.error("Please add GEMINI_API_KEY to your environment.");
+      if (msg.includes("signed-in cloud account")) toast.error(msg);
       else toast.error("Couldn't generate plan. Try again.");
       console.error("generatePlan error:", e);
     } finally { setPlanLoading(false); }

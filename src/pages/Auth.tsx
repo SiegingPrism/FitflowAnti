@@ -9,6 +9,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatedBackground } from "@/components/theme/AnimatedBackground";
 import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
+
+const getRedirectUrl = (path: string = "") => {
+  if (Capacitor.isNativePlatform()) {
+    const isDev = import.meta.env.DEV;
+    const defaultUrl = isDev ? "http://localhost:5173" : "https://flowfitanti-app.vercel.app";
+    const webUrl = import.meta.env.VITE_WEB_URL || defaultUrl;
+    // Avoid double slashes if path is empty
+    const normalizedPath = path ? `${path}` : "";
+    return `${webUrl}/${normalizedPath}?origin=app`;
+  }
+  return `${window.location.origin}/${path}`;
+};
 
 const emailSchema = z.string().trim().email({ message: "Enter a valid email address" }).max(255);
 const passwordSchema = z
@@ -21,7 +34,7 @@ type Mode = "signin" | "signup" | "forgot";
 const AuthPage = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, loginAsLocalUser } = useAuth();
 
   const [mode, setMode] = useState<Mode>(params.get("mode") === "signup" ? "signup" : "signin");
   const [email, setEmail] = useState("");
@@ -45,7 +58,7 @@ const AuthPage = () => {
 
       if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(parsedEmail.data, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: getRedirectUrl("reset-password"),
         });
         if (error) throw error;
         toast.success("Check your inbox for a reset link.");
@@ -64,31 +77,31 @@ const AuthPage = () => {
           email: parsedEmail.data,
           password: parsedPw.data,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: getRedirectUrl(),
             data: { display_name: name.trim() || undefined },
           },
         });
         if (error) throw error;
-        toast.success("Account created — check your email to verify before signing in.");
+        toast.success("Account created! Check your email to confirm, or sign in.", {
+          duration: 6000,
+        });
         setMode("signin");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: parsedEmail.data,
           password: parsedPw.data,
         });
-        if (error) {
-          if (error.message.toLowerCase().includes("email not confirmed")) {
-            toast.error("Please verify your email first. Check your inbox.");
-          } else if (error.message.toLowerCase().includes("invalid login")) {
-            toast.error("Wrong email or password.");
-          } else {
-            toast.error(error.message);
-          }
-          return;
-        }
+        if (error) throw error;
+        toast.success("Welcome back!");
+        navigate("/", { replace: true });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong.");
+      const msg = err instanceof Error ? err.message : "Authentication failed.";
+      if (msg.includes("Failed to fetch") || msg.includes("network")) {
+        toast.error("Cloud server unreachable. Use Quick Developer Login or Guest Mode to continue offline.");
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setBusy(false);
     }
@@ -97,16 +110,23 @@ const AuthPage = () => {
   const handleGoogle = async () => {
     setBusy(true);
     try {
+      const redirectUrl = getRedirectUrl();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
         },
       });
       if (error) {
-        toast.error("Couldn't sign in with Google. Please try again.");
+        console.error("Google OAuth Error:", error);
+        toast.error(`Couldn't sign in with Google: ${error.message}`);
       }
     } catch (err) {
+      console.error("Google OAuth Catch Error:", err);
       toast.error(err instanceof Error ? err.message : "Google sign-in failed.");
     } finally {
       setBusy(false);
@@ -114,43 +134,19 @@ const AuthPage = () => {
   };
 
   const handleDevLogin = async () => {
+    if (!import.meta.env.DEV) return;
     setBusy(true);
-    const devEmail = "dev@fitflow.app";
-    const devPass = "fitflowdev123";
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: devEmail,
-        password: devPass,
-      });
+    // In local dev, use offline mock developer session to avoid exposing shared cloud credentials
+    loginAsLocalUser("developer");
+    toast.success("Logged in as Developer (Local Mode)");
+    navigate("/", { replace: true });
+    setBusy(false);
+  };
 
-      if (error) {
-        if (error.message.toLowerCase().includes("invalid login")) {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: devEmail,
-            password: devPass,
-            options: {
-              data: { display_name: "Developer" },
-            },
-          });
-          if (signUpError) throw signUpError;
-          
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: devEmail,
-            password: devPass,
-          });
-          if (signInError) throw signInError;
-          toast.success("Developer account created and logged in!");
-        } else {
-          throw error;
-        }
-      } else {
-        toast.success("Logged in as Developer");
-      }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Developer login failed.");
-    } finally {
-      setBusy(false);
-    }
+  const handleGuestLogin = () => {
+    loginAsLocalUser("guest");
+    toast.success("Running in Guest Mode (Offline)");
+    navigate("/", { replace: true });
   };
 
   if (authLoading) {
@@ -172,8 +168,8 @@ const AuthPage = () => {
         className="w-full max-w-md relative z-10"
       >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-primary flex items-center justify-center text-3xl shadow-elevated">
-            🌐
+          <div className="w-20 h-20 mx-auto rounded-2xl overflow-hidden shadow-elevated border border-primary/20">
+            <img src="/logo.png" alt="Fitflow Logo" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl md:text-4xl font-display font-bold mt-4">
             {mode === "signup" ? "Create your account" : mode === "forgot" ? "Reset your password" : "Welcome back"}
@@ -262,15 +258,29 @@ const AuthPage = () => {
             </Button>
             
             {mode === "signin" && (
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleDevLogin}
-                disabled={busy}
-                className="w-full text-xs text-muted-foreground hover:text-foreground mt-1"
-              >
-                🛠️ Quick Developer Login
-              </Button>
+              <div className="flex flex-col gap-1 mt-2">
+                {/* Dev shortcut uses a shared password — only in `npm run dev`, never in production builds */}
+                {import.meta.env.DEV && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleDevLogin}
+                    disabled={busy}
+                    className="w-full text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    🛠️ Quick Developer Login
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGuestLogin}
+                  disabled={busy}
+                  className="w-full text-xs border-dashed border-border/60 hover:bg-primary/5 hover:border-primary/40 text-muted-foreground hover:text-primary transition-smooth"
+                >
+                  ✨ Continue as Guest (Offline Mode)
+                </Button>
+              </div>
             )}
           </form>
 

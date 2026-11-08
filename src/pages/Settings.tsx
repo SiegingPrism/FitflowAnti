@@ -52,14 +52,8 @@ const SettingsPage = () => {
     if (!user) return;
     if (!confirm("This will permanently erase all your tasks, habits, focus sessions, and progress. Continue?")) return;
     try {
-      await Promise.all([
-        supabase.from("tasks").delete().eq("user_id", user.id),
-        supabase.from("habits").delete().eq("user_id", user.id),
-        supabase.from("focus_sessions").delete().eq("user_id", user.id),
-        supabase.from("health_logs").delete().eq("user_id", user.id),
-        supabase.from("xp_events").delete().eq("user_id", user.id),
-        supabase.from("profiles").update({ total_xp: 0, onboarded_at: null, primary_goal: null }).eq("user_id", user.id),
-      ]);
+      const { error: resetErr } = await supabase.rpc("reset_my_progress");
+      if (resetErr) throw resetErr;
       clearLocal();
       localStorage.removeItem("flowsphere-theme");
       localStorage.removeItem("flowfit-store");

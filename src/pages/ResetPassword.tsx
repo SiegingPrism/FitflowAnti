@@ -20,15 +20,33 @@ const ResetPasswordPage = () => {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase parses the hash & sets a recovery session automatically.
-    // We just wait for it.
+    let mounted = true;
+    // Timeout to make sure the form unlocks even if auth check takes too long
+    const timer = setTimeout(() => {
+      if (mounted) setReady(true);
+    }, 2000);
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
+      if (mounted && (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN")) {
+        setReady(true);
+        clearTimeout(timer);
+      }
     });
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (mounted && data?.session) {
+          setReady(true);
+          clearTimeout(timer);
+        }
+      })
+      .catch((err) => console.warn("ResetPassword getSession error:", err));
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+      sub?.subscription?.unsubscribe();
+    };
   }, []);
 
   const submit = async (e: React.FormEvent) => {

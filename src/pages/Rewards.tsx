@@ -1,4 +1,4 @@
-import { getISTDate } from "@/lib/utils";
+import { getISTDate, getISTTodayStr, cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Trophy, Flame, Target, Zap, Sparkles, Award, Star, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -6,20 +6,15 @@ import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
-import { levelFromXp } from "@/lib/gamification";
-import { cn } from "@/lib/utils";
+import { levelFromXp, currentStreak } from "@/lib/gamification";
 
 const RewardsPage = () => {
   const { totalXP, tasks, focusSessions, habits, xpHistory } = useAppStore();
   const levelInfo = levelFromXp(totalXP);
   const displayLevel = Math.max(1, levelInfo.level);
   const completed = tasks.filter((t) => t.completed).length;
-  const longestStreak = Math.max(0, ...habits.map((h) => {
-    const set = new Set(h.history);
-    let s = 0; const cur = getISTDate();
-    while (true) { const k = cur.toISOString().slice(0,10); if (set.has(k)) { s++; cur.setDate(cur.getDate()-1); } else break; }
-    return s;
-  }));
+  const todayStr = getISTTodayStr();
+  const longestStreak = Math.max(0, ...habits.map((h) => currentStreak(h.history, todayStr)));
 
   const achievements = [
     { id: "first-task", icon: Target, label: "First Step", desc: "Complete your first task", unlocked: completed >= 1, tone: "primary" as const },

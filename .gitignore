@@ -25,3 +25,12 @@ dist-ssr
 .env
 .vercel
 .env*.local
+
+# Supabase temporary files
+supabase/.temp/
+
+# Android & iOS build artifacts and binaries
+*.apk
+*.aab
+test-results/
+ios/App/App.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/

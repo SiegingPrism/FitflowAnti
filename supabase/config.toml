@@ -6,3 +6,6 @@ verify_jwt = false
 [functions.ai-weekly-plan]
 verify_jwt = false
 
+
+[functions.ai-proxy]
+verify_jwt = false # JWT is verified inside the function via auth.getUser()

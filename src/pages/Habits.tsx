@@ -13,17 +13,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn, getPastDays } from "@/lib/utils";
 import { toast } from "sonner";
 
-const computeStreak = (history: string[]) => {
-  if (history.length === 0) return 0;
-  const set = new Set(history);
-  let streak = 0;
-  const cursor = getISTDate();
-  while (true) {
-    const k = cursor.toISOString().slice(0, 10);
-    if (set.has(k)) { streak += 1; cursor.setDate(cursor.getDate() - 1); }
-    else break;
-  }
-  return streak;
+import { currentStreak } from "@/lib/gamification";
+
+const computeStreak = (history: string[], todayStr: string) => {
+  return currentStreak(history, todayStr);
 };
 
 const HabitsPage = () => {
@@ -58,7 +51,7 @@ const HabitsPage = () => {
           </div>
         )}
         {habits.map((h, i) => {
-          const streak = computeStreak(h.history);
+          const streak = computeStreak(h.history, today);
           const set = new Set(h.history);
           const last7 = days.slice(-7).filter((d) => set.has(d)).length;
           return (

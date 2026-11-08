@@ -4,7 +4,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { FadeIn, Chip } from "@/components/shared/UI";
 import { useAppStore } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
-import { getGeminiApiKey } from "@/lib/gemini-client";
+import { geminiFetch } from "@/lib/gemini-client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -166,10 +166,8 @@ export default function MindDeveloper() {
   // Shared AI call helper
   const callAI = async (systemPrompt: string, userPrompt: string) => {
     if (aiProvider === "gemini") {
-      const apiKey = getGeminiApiKey();
-      if (!apiKey) throw new Error("Gemini API key is not configured.");
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
+      const response = await geminiFetch("gemini-3.6-flash", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

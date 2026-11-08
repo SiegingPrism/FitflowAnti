@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Fitflow</string>
+    <string name="title_activity_main">Fitflow</string>
+    <string name="package_name">com.fitflowanti.app</string>
+    <string name="custom_url_scheme">com.fitflowanti.app</string>
+</resources>

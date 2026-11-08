@@ -1,8 +1,8 @@
-import { getISTDate } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAppStore, todayKey } from "@/lib/store";
 import { Flame, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { currentStreak } from "@/lib/gamification";
 
 export const HabitsStrip = () => {
   const allHabits = useAppStore((s) => s.habits);
@@ -24,32 +24,7 @@ export const HabitsStrip = () => {
   );
 
   const computeStreak = (history: string[]) => {
-    if (history.length === 0) return 0;
-    const set = new Set(history);
-    let streak = 0;
-
-    // We start looking from today
-    const cursor = getISTDate();
-    const todayStr = cursor.toISOString().slice(0, 10);
-
-    // If today is not in the set, check if yesterday is.
-    // If neither is, the streak is 0.
-    if (!set.has(todayStr)) {
-      cursor.setDate(cursor.getDate() - 1);
-      const yesterdayStr = cursor.toISOString().slice(0, 10);
-      if (!set.has(yesterdayStr)) {
-        return 0;
-      }
-    }
-
-    while (true) {
-      const k = cursor.toISOString().slice(0, 10);
-      if (set.has(k)) {
-        streak += 1;
-        cursor.setDate(cursor.getDate() - 1);
-      } else break;
-    }
-    return streak;
+    return currentStreak(history, today);
   };
 
   return (

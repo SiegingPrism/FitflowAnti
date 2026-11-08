@@ -249,6 +249,7 @@ export type Database = {
           updated_at: string
           user_id: string
           xp: number
+          xp_awarded: boolean
         }
         Insert: {
           category?: string
@@ -264,6 +265,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           xp?: number
+          xp_awarded?: boolean
         }
         Update: {
           category?: string
@@ -279,6 +281,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           xp?: number
+          xp_awarded?: boolean
         }
         Relationships: []
       }
@@ -327,6 +330,26 @@ export type Database = {
       complete_task: {
         Args: {
           p_task_id: string
+        }
+        Returns: Json
+      }
+      record_xp_event: {
+        Args: {
+          p_amount: number
+          p_reason: string
+          p_branch: string
+          p_source_type: string
+        }
+        Returns: Json
+      }
+      reset_my_progress: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      uncheck_habit: {
+        Args: {
+          p_habit_id: string
+          p_date: string
         }
         Returns: Json
       }

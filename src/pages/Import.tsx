@@ -3,7 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { Chip, FadeIn } from "@/components/shared/UI";
 import { useAppStore, type Priority, type TaskCategory } from "@/lib/store";
-import { getGeminiApiKey } from "@/lib/gemini-client";
+import { geminiFetch } from "@/lib/gemini-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -96,10 +96,6 @@ export const ImportPage = () => {
 
     setParsing(true);
     try {
-      const GEMINI_API_KEY = getGeminiApiKey();
-      if (!GEMINI_API_KEY) {
-        throw new Error("GEMINI_API_KEY not configured. Add it in settings.");
-      }
 
       const systemPrompt = `You are FitflowAnti's Plan Extraction Engine.
 Analyze the user's pasted plan, schedule, study roadmap, or prompt. Extract and map:
@@ -113,8 +109,7 @@ You must return a valid JSON structure matching the schema.`;
 
       const userPrompt = `Pasted Plan:\n${rawText}\n\nExtract and personalize.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${GEMINI_API_KEY}`,
+      const response = await geminiFetch(selectedModel,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

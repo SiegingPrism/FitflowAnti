@@ -19,10 +19,6 @@ export const AnimatedBackground = () => {
   const { config } = useThemeEngine();
   const hellMode = useAppStore((s) => s.hellMode);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const cfgRef = useRef<ThemeConfig>(config);
-
-  // Keep painter reading the latest theme without re-mounting the loop
-  useEffect(() => { cfgRef.current = config; }, [config]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -49,7 +45,7 @@ export const AnimatedBackground = () => {
     let particles: P[] = [];
 
     const seed = () => {
-      const cfg = cfgRef.current;
+      const cfg = config;
       const count = cfg.particles.enabled ? cfg.particles.count : 0;
       particles = new Array(count).fill(0).map(() => spawn(cfg));
     };
@@ -95,7 +91,7 @@ export const AnimatedBackground = () => {
       last = now - (elapsed % fpsInterval);
       t += dt;
 
-      const cfg = cfgRef.current;
+      const cfg = config;
       ctx.clearRect(0, 0, width, height);
 
       // 1) Ambient base wash — uses primary token at low alpha
@@ -118,7 +114,7 @@ export const AnimatedBackground = () => {
           }
 
           const pct = Math.sin((p.life / p.max) * Math.PI);
-          const alpha = Math.max(0, Math.min(pct * cfg.particles.opacity, 1));
+          const alpha = Math.max(0, Math.min(pct * 0.6, 1));
           ctx.beginPath();
           ctx.fillStyle = `hsla(${p.hue}, ${cfg.particles.saturation}%, ${cfg.particles.lightness}%, ${alpha})`;
           ctx.shadowColor = `hsla(${p.hue}, ${cfg.particles.saturation}%, ${cfg.particles.lightness}%, ${alpha})`;
@@ -151,7 +147,7 @@ export const AnimatedBackground = () => {
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [config]);
 
   if (hellMode) return null;
 
@@ -161,15 +157,16 @@ export const AnimatedBackground = () => {
       <div
         className="absolute inset-0 transition-[background] duration-700 ease-out"
         style={{
-          background: "hsl(var(--background))",
-          backgroundImage: "var(--gradient-mesh)",
+          background: config.scheme === "light" 
+            ? "hsl(var(--background))" 
+            : "radial-gradient(circle at 50% 50%, #0d0a18 0%, #040207 100%)",
         }}
       />
       {/* Canvas painter for animations + particles */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
-        style={{ mixBlendMode: "screen" }}
+        style={{ mixBlendMode: config.scheme === "light" ? "normal" : "screen" }}
       />
     </div>
   );

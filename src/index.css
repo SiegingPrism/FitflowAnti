@@ -1,6 +1,5 @@
-@import "./styles/hell-mode.css";
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&family=Outfit:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600&family=Quicksand:wght@400;500;600;700&family=Righteous&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&family=Jost:wght@400;500;600&family=Kanit:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Montserrat:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Crimson+Text:wght@400;600;700&family=Cinzel:wght@600;700&display=swap');
+@import "./styles/hell-mode.css";
 
 @tailwind base;
 @tailwind components;
@@ -105,7 +104,15 @@
                 box-shadow 0.4s var(--transition-smooth);
   }
   .glass-card {
-    @apply glass rounded-3xl p-5;
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+    transition: background 0.4s var(--transition-smooth),
+                border-color 0.4s var(--transition-smooth),
+                box-shadow 0.4s var(--transition-smooth);
+    @apply rounded-3xl p-5;
     position: relative;
     overflow: hidden;
   }
@@ -135,6 +142,10 @@
   .shadow-glow         { box-shadow: var(--shadow-glow); }
   .transition-smooth   { transition: all 0.3s var(--transition-smooth); }
   .transition-bounce   { transition: all 0.4s var(--transition-bounce); }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
   .scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
   .scrollbar-thin::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.3); border-radius: 3px; }
   .text-balance { text-wrap: balance; }
@@ -177,7 +188,7 @@
   font-family: 'Quicksand', sans-serif;
 }
 .theme-aurora h1, .theme-aurora h2, .theme-aurora h3, .theme-aurora h4, .theme-aurora .font-display, .theme-aurora .number-display {
-  font-family: 'Righteous', display;
+  font-family: 'Righteous', cursive, sans-serif;
   letter-spacing: 0.02em;
   font-weight: 400;
 }
@@ -414,7 +425,7 @@
   border: none !important;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6) !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 /* Gradient Gold Border Technique */
@@ -425,9 +436,10 @@
   border-radius: var(--card-radius) !important;
   padding: var(--card-border-width) !important;
   background: var(--gold-border) !important;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
-  -webkit-mask-composite: xor !important;
   mask-composite: exclude !important;
+  -webkit-mask-composite: xor !important;
   pointer-events: none !important;
   opacity: 0.6 !important;
   transition: opacity 0.3s ease !important;
@@ -439,22 +451,20 @@
 }
 
 /* Typography Highlights */
-.theme-mind-dev h1, 
-.theme-mind-dev h2, 
-.theme-mind-dev h3,
-.theme-mind-dev h4,
-.theme-mind-dev .font-display,
-.theme-mind-dev .number-display {
+.theme-mind-dev h1:not(.gradient-text), 
+.theme-mind-dev h2:not(.gradient-text), 
+.theme-mind-dev h3:not(.gradient-text),
+.theme-mind-dev h4:not(.gradient-text),
+.theme-mind-dev .font-display:not(.gradient-text),
+.theme-mind-dev .number-display:not(.gradient-text) {
   color: var(--text-main) !important;
   font-family: var(--font-family) !important;
-  -webkit-text-fill-color: initial !important;
-  background: none !important;
 }
 
 .theme-mind-dev p,
 .theme-mind-dev span,
 .theme-mind-dev label {
-  font-family: var(--font-family) !important;
+  font-family: var(--font-family);
 }
 
 /* Golden text highlights inside cards and sections */
@@ -470,9 +480,9 @@
 }
 
 /* Sub-cards inside card containers (e.g. SCORE, FOCUS, XP) with Topographic Waves */
-.theme-mind-dev .glass-card .bg-muted\/40,
-.theme-mind-dev .glass-card .bg-background\/50,
-.theme-mind-dev .glass-card .bg-card\/50 {
+.theme-mind-dev .glass-card [class*="bg-muted/40"],
+.theme-mind-dev .glass-card [class*="bg-background/50"],
+.theme-mind-dev .glass-card [class*="bg-card/50"] {
   background-color: rgba(18, 18, 22, 0.9) !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg stroke='%23d4af37' stroke-opacity='0.08' stroke-width='0.75' fill='none'%3E%3Cpath d='M0 10c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 30c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 50c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 70c20 0 10 20 40 20s20-20 40-20 20 20 20 20M0 90c20 0 10 20 40 20s20-20 40-20 20 20 20 20'/%3E%3C/g%3E%3C/svg%3E") !important;
   border: 1px solid rgba(212, 175, 55, 0.35) !important;
@@ -513,7 +523,6 @@
   border-radius: 10px !important;
   box-shadow: 0 0 20px var(--gold-glow) !important;
   transition: all 0.2s ease !important;
-  -webkit-text-fill-color: #0d0d0f !important;
 }
 
 .theme-mind-dev .bg-gradient-primary:hover,
@@ -526,7 +535,7 @@
 /* Custom Chart & Progress Fill */
 .theme-mind-dev [role="progressbar"],
 .theme-mind-dev .w-full.h-2.bg-secondary,
-.theme-mind-dev .w-full.h-2.bg-muted\/40 {
+.theme-mind-dev [class*="bg-muted/40"] {
   background: rgba(255, 255, 255, 0.05) !important;
   border-radius: 4px !important;
   overflow: hidden !important;
@@ -546,4 +555,3 @@
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
-
