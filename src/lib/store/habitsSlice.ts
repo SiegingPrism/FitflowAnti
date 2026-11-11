@@ -1,6 +1,7 @@
 import type { Habit, StoreGet, StoreSet } from "./types";
 import { offlineQueue } from "../sync/offlineQueue";
-import { getISTISOString, getISTTodayStr } from "../utils";
+import { getISTISOString, getISTTodayStr, isSameDayIST } from "../utils";
+import { HABIT_BASE_XP } from "../gamification";
 
 export interface HabitsSlice {
   habits: Habit[];
@@ -53,16 +54,25 @@ export const createHabitsSlice = (set: StoreSet, get: StoreGet): HabitsSlice => 
     const userId = get().userId;
 
     if (!alreadyDone) {
-      if (userId) {
-        offlineQueue.enqueue(userId, "habit_checkin", { id, date: t });
-      }
-      get().awardFor(
+      const earned = get().awardFor(
         { type: "habit", emoji: habit.emoji, category: habit.category },
         `Habit: ${habit.name}`,
         !!userId,
       );
-    } else if (userId) {
-      offlineQueue.enqueue(userId, "habit_uncheck", { id, date: t });
+      if (userId) {
+        offlineQueue.enqueue(userId, "habit_checkin", { id, date: t, xpEarned: earned });
+      }
+    } else {
+      const xpToRemove = HABIT_BASE_XP;
+      set((s) => ({
+        totalXP: Math.max(0, s.totalXP - xpToRemove),
+        xpHistory: s.xpHistory.filter(
+          (e) => !(e.sourceType === "habit" && e.reason === `Habit: ${habit.name}` && isSameDayIST(e.at, t)),
+        ).slice(0, 200),
+      }));
+      if (userId) {
+        offlineQueue.enqueue(userId, "habit_uncheck", { id, date: t, xpToRemove });
+      }
     }
   },
 

@@ -11,7 +11,7 @@ export type Priority = "low" | "medium" | "high" | "urgent";
 export type TaskCategory = "work" | "personal" | "health" | "learning" | "fitness" | "study" | "mental_health" | "other";
 
 export type ActionSource =
-  | { type: "task"; priority: Priority; category: TaskCategory }
+  | { type: "task"; priority: Priority; category: TaskCategory; customXp?: number }
   | { type: "habit"; category?: TaskCategory; emoji?: string }
   | { type: "focus"; durationMin: number }
   | { type: "health"; kind: "water_goal" | "step_goal" | "mood" | "workout" }
@@ -44,7 +44,9 @@ export const LOGIN_BASE_XP = 5;
 export function baseXp(source: ActionSource): number {
   switch (source.type) {
     case "task":
-      return TASK_BASE_XP[source.priority];
+      return typeof source.customXp === "number" && source.customXp > 0
+        ? source.customXp
+        : TASK_BASE_XP[source.priority];
     case "habit":
       return HABIT_BASE_XP;
     case "focus":
@@ -78,11 +80,9 @@ export function difficultyMultiplier(
   userLevel: number,
   actionDifficulty: number,
 ): number {
-  // expected difficulty grows ~ sqrt(level) but we keep it simple:
-  // actions <= userLevel/4 are "far below", >= userLevel/3 are "at or above".
   if (userLevel <= 1) return 1.0;
   const farBelow = actionDifficulty < Math.max(1, Math.floor(userLevel / 4));
-  const atOrAbove = actionDifficulty >= Math.max(1, Math.ceil(userLevel / 3));
+  const atOrAbove = actionDifficulty >= Math.min(4, Math.max(2, Math.ceil(userLevel / 3)));
   if (farBelow) return 0.9;
   if (atOrAbove) return 1.15;
   return 1.0;
@@ -127,8 +127,7 @@ export function computeXp(source: ActionSource, ctx: AwardContext): number {
 
 // ---------------------------------------------------------------------------
 // 4. Levels — sqrt curve (target v2)
-//    level = floor(sqrt(total_xp / 60))
-//    L1 @ 60 · L5 @ 1500 · L10 @ 6000 · L25 @ 37500
+//    L1 begins at 0 XP · L2 @ 60 · L3 @ 240 · L5 @ 1500 · L10 @ 6000
 // ---------------------------------------------------------------------------
 
 export interface LevelInfo {
@@ -141,12 +140,13 @@ export interface LevelInfo {
 }
 
 export function xpForLevel(level: number): number {
-  return Math.max(0, level) ** 2 * 60;
+  if (level <= 1) return 0;
+  return (level - 1) ** 2 * 60;
 }
 
 export function levelFromXp(totalXp: number): LevelInfo {
   const xp = Math.max(0, Math.floor(totalXp));
-  const level = Math.floor(Math.sqrt(xp / 60));
+  const level = 1 + Math.floor(Math.sqrt(xp / 60));
   const xpForCurrent = xpForLevel(level);
   const xpForNext = xpForLevel(level + 1);
   const xpInLevel = xp - xpForCurrent;

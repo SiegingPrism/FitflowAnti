@@ -1,14 +1,15 @@
 import type { ActionSource, StoreGet, StoreSet, XPEvent } from "./types";
-import { branchOf, computeXp, currentStreak, levelFromXp } from "../gamification";
+import { branchOf, computeXp, currentStreak, levelFromXp, Branch } from "../gamification";
 import { offlineQueue } from "../sync/offlineQueue";
-import { getISTISOString, getISTTodayStr } from "../utils";
+import { getISTISOString, getISTTodayStr, isSameDayIST } from "../utils";
+import { formatInTimeZone } from "date-fns-tz";
 
 export interface GamificationSlice {
   totalXP: number;
   xpHistory: XPEvent[];
   hellMode: boolean;
   awardFor: (source: ActionSource, reason: string, skipCloudSync?: boolean) => number;
-  grantDebugXp: (amount: number, reason?: string) => void;
+  grantDebugXp: (amount: number, reason?: string, branch?: Branch, sourceType?: XPEvent["sourceType"]) => void;
   toggleHellMode: () => void;
 }
 
@@ -21,10 +22,16 @@ export const createGamificationSlice = (set: StoreSet, get: StoreGet): Gamificat
     const state = get();
     const todayKey = getISTTodayStr();
     const dailyStreak = currentStreak(
-      Array.from(new Set(state.xpHistory.map((e) => e.at.slice(0, 10)))),
+      Array.from(new Set(state.xpHistory.map((e) => {
+        try {
+          return formatInTimeZone(new Date(e.at), "Asia/Kolkata", "yyyy-MM-dd");
+        } catch {
+          return e.at.slice(0, 10);
+        }
+      }))),
       todayKey,
     );
-    const actionsToday = state.xpHistory.filter((e) => e.at.slice(0, 10) === todayKey).length;
+    const actionsToday = state.xpHistory.filter((e) => isSameDayIST(e.at, todayKey)).length;
     const userLevel = levelFromXp(state.totalXP).level;
     const amount = computeXp(source, { streakDays: dailyStreak, userLevel, actionsToday });
     const branch = branchOf(source);
@@ -55,13 +62,13 @@ export const createGamificationSlice = (set: StoreSet, get: StoreGet): Gamificat
     return amount;
   },
 
-  grantDebugXp: (amount, reason = "Debug XP grant") => {
+  grantDebugXp: (amount, reason = "Debug XP grant", branch = "learning", sourceType = "task") => {
     const event: XPEvent = {
       id: crypto.randomUUID(),
       amount,
       reason,
-      branch: "craft",
-      sourceType: "login",
+      branch,
+      sourceType,
       at: getISTISOString(),
     };
 
@@ -75,8 +82,8 @@ export const createGamificationSlice = (set: StoreSet, get: StoreGet): Gamificat
       offlineQueue.enqueue(userId, "xp_record", {
         amount,
         reason,
-        branch: "craft",
-        sourceType: "login",
+        branch,
+        sourceType,
       });
     }
   },

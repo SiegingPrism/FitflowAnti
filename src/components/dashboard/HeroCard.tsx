@@ -48,7 +48,6 @@ export const HeroCard = () => {
   const score = Math.min(99, Math.round(completionRate * 0.6 + Math.min(focusToday, 120) * 0.3 + Math.min(totalXP, 200) * 0.05));
   const state = productivityState(completionRate);
   const levelInfo = levelFromXp(totalXP);
-  const displayLevel = Math.max(1, levelInfo.level);
   const span = levelInfo.xpForNext - levelInfo.xpForCurrent;
 
   return (
@@ -118,7 +117,7 @@ export const HeroCard = () => {
         <div className="grid grid-cols-3 gap-3 pt-5 border-t border-border/40">
           <Stat label="Score" value={score.toString()} sub={`${completionRate}% done`} />
           <Stat label="Focus" value={`${focusToday}m`} sub="today" />
-          <Stat label="XP" value={totalXP.toString()} sub={`${levelInfo.xpInLevel}/${span} → L${displayLevel + 1}`} />
+          <Stat label="XP" value={totalXP.toString()} sub={`${levelInfo.xpInLevel}/${span} → L${levelInfo.level + 1}`} />
         </div>
       </div>
     </motion.section>

@@ -21,6 +21,7 @@ describe("baseXp", () => {
     expect(baseXp({ type: "task", priority: "medium", category: "work" })).toBe(10);
     expect(baseXp({ type: "task", priority: "high", category: "work" })).toBe(20);
     expect(baseXp({ type: "task", priority: "urgent", category: "work" })).toBe(35);
+    expect(baseXp({ type: "task", priority: "low", category: "work", customXp: 50 })).toBe(50);
   });
   it("rounds focus minutes to nearest 5 XP", () => {
     expect(baseXp({ type: "focus", durationMin: 25 })).toBe(25);
@@ -87,24 +88,26 @@ describe("computeXp", () => {
 });
 
 describe("levelFromXp", () => {
-  it("uses sqrt curve: L1 @ 60, L5 @ 1500, L10 @ 6000", () => {
-    expect(xpForLevel(1)).toBe(60);
-    expect(xpForLevel(5)).toBe(1500);
-    expect(xpForLevel(10)).toBe(6000);
-    expect(xpForLevel(25)).toBe(37500);
+  it("uses sqrt curve: L1 @ 0, L2 @ 60, L3 @ 240, L6 @ 1500, L11 @ 6000", () => {
+    expect(xpForLevel(1)).toBe(0);
+    expect(xpForLevel(2)).toBe(60);
+    expect(xpForLevel(3)).toBe(240);
+    expect(xpForLevel(6)).toBe(1500);
+    expect(xpForLevel(11)).toBe(6000);
+    expect(xpForLevel(26)).toBe(37500);
   });
-  it("returns level 0 at 0 XP", () => {
+  it("returns level 1 at 0 XP", () => {
     const l = levelFromXp(0);
-    expect(l.level).toBe(0);
+    expect(l.level).toBe(1);
     expect(l.xpToNext).toBe(60);
     expect(l.progress).toBe(0);
   });
-  it("returns level 1 at exactly 60 XP", () => {
-    expect(levelFromXp(60).level).toBe(1);
+  it("returns level 2 at exactly 60 XP", () => {
+    expect(levelFromXp(60).level).toBe(2);
   });
   it("computes progress within a level", () => {
-    const l = levelFromXp(120); // between L1(60) and L2(240)
-    expect(l.level).toBe(1);
+    const l = levelFromXp(120); // between L2(60) and L3(240)
+    expect(l.level).toBe(2);
     expect(l.xpInLevel).toBe(60);
     expect(l.progress).toBeCloseTo(60 / 180, 2);
   });

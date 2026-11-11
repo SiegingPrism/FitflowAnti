@@ -11,7 +11,6 @@ import { levelFromXp, currentStreak } from "@/lib/gamification";
 const RewardsPage = () => {
   const { totalXP, tasks, focusSessions, habits, xpHistory } = useAppStore();
   const levelInfo = levelFromXp(totalXP);
-  const displayLevel = Math.max(1, levelInfo.level);
   const completed = tasks.filter((t) => t.completed).length;
   const todayStr = getISTTodayStr();
   const longestStreak = Math.max(0, ...habits.map((h) => currentStreak(h.history, todayStr)));
@@ -23,7 +22,7 @@ const RewardsPage = () => {
     { id: "five-focus", icon: Sparkles, label: "Focused Five", desc: "5 focus sessions", unlocked: focusSessions.length >= 5, tone: "warning" as const },
     { id: "streak-3", icon: Flame, label: "On Fire", desc: "3-day habit streak", unlocked: longestStreak >= 3, tone: "warning" as const },
     { id: "streak-7", icon: Star, label: "Week Warrior", desc: "7-day habit streak", unlocked: longestStreak >= 7, tone: "success" as const },
-    { id: "level-3", icon: Trophy, label: "Climber", desc: "Reach level 3", unlocked: displayLevel >= 3, tone: "accent" as const },
+    { id: "level-3", icon: Trophy, label: "Climber", desc: "Reach level 3", unlocked: levelInfo.level >= 3, tone: "accent" as const },
     { id: "xp-500", icon: Zap, label: "XP Hunter", desc: "Earn 500 XP", unlocked: totalXP >= 500, tone: "primary" as const },
   ];
 
@@ -39,8 +38,8 @@ const RewardsPage = () => {
           <div className="md:col-span-2">
             <p className="text-xs uppercase tracking-widest text-primary/80 font-semibold mb-2">Level Progress</p>
             <div className="flex items-baseline gap-3">
-              <p className="number-display text-6xl gradient-text">L{displayLevel}</p>
-              <p className="text-muted-foreground">{levelInfo.xpToNext} XP to L{displayLevel + 1}</p>
+              <p className="number-display text-6xl gradient-text">L{levelInfo.level}</p>
+              <p className="text-muted-foreground">{levelInfo.xpToNext} XP to L{levelInfo.level + 1}</p>
             </div>
             <div className="h-3 bg-muted rounded-full overflow-hidden mt-4">
               <motion.div

@@ -75,7 +75,6 @@ export const LevelCard = () => {
   const totalXP = useAppStore((s) => s.totalXP);
   const hellMode = useAppStore((s) => s.hellMode);
   const levelInfo = levelFromXp(totalXP);
-  const displayLevel = Math.max(1, levelInfo.level);
   const pct = Math.round(levelInfo.progress * 100);
   const span = levelInfo.xpForNext - levelInfo.xpForCurrent;
 
@@ -96,14 +95,14 @@ export const LevelCard = () => {
             {hellMode ? (
               <p className="text-xs text-red-500 font-bold mt-1 tracking-wider uppercase">DEBT: 6,668 XP UNTIL DEGRADATION</p>
             ) : (
-              <p className="number-display text-3xl mt-1">Level {displayLevel}</p>
+              <p className="number-display text-3xl mt-1">Level {levelInfo.level}</p>
             )}
           </div>
           <div className="w-10 h-10 rounded-xl bg-gradient-warm flex items-center justify-center shadow-elevated">
             <Trophy className="w-5 h-5 text-warning-foreground" />
           </div>
         </div>
-        {!hellMode && <p className="text-sm text-muted-foreground mb-3">{levelInfo.xpToNext} XP until level {displayLevel + 1}</p>}
+        {!hellMode && <p className="text-sm text-muted-foreground mb-3">{levelInfo.xpToNext} XP until level {levelInfo.level + 1}</p>}
         <div className="h-2.5 bg-muted rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}

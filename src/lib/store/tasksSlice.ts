@@ -78,16 +78,17 @@ export const createTasksSlice = (set: StoreSet, get: StoreGet): TasksSlice => ({
     const userId = get().userId;
 
     if (willComplete) {
-      if (userId) {
-        offlineQueue.enqueue(userId, "task_complete", { id });
-      }
-
+      let earned: number | undefined;
       if (willAwardXp) {
-        get().awardFor(
-          { type: "task", priority: task.priority, category: task.category },
+        earned = get().awardFor(
+          { type: "task", priority: task.priority, category: task.category, customXp: task.xp },
           `Completed: ${task.title}`,
           !!userId,
         );
+      }
+
+      if (userId) {
+        offlineQueue.enqueue(userId, "task_complete", { id, xpEarned: earned });
       }
     } else {
       if (userId) {

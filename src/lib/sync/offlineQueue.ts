@@ -232,6 +232,7 @@ class OfflineQueueManager {
       case "task_complete": {
         const { error } = await supabase.rpc("complete_task", {
           p_task_id: payload.id as string,
+          p_xp_earned: typeof payload.xpEarned === "number" ? payload.xpEarned : undefined,
         });
         if (error) {
           console.error("[OfflineQueue] complete_task RPC error:", error);
@@ -274,6 +275,7 @@ class OfflineQueueManager {
         const { error } = await supabase.rpc("checkin_habit", {
           p_habit_id: payload.id as string,
           p_date: payload.date as string,
+          p_xp_earned: typeof payload.xpEarned === "number" ? payload.xpEarned : undefined,
         });
         if (error) {
           // Fallback to direct checkin insert if RPC fails
@@ -294,6 +296,7 @@ class OfflineQueueManager {
         const { error } = await supabase.rpc("uncheck_habit", {
           p_habit_id: payload.id as string,
           p_date: payload.date as string,
+          p_xp_to_remove: typeof payload.xpToRemove === "number" ? payload.xpToRemove : undefined,
         });
         if (error) {
           // Fallback: remove the check-in row directly (RLS allows own deletes)
@@ -360,11 +363,15 @@ class OfflineQueueManager {
 
       case "xp_record": {
         // Use verified record_xp_event RPC
+        const validSourceTypes = ["task", "habit", "focus", "health", "login"];
+        const rawSource = payload.sourceType as string;
+        const safeSource = validSourceTypes.includes(rawSource) ? rawSource : "task";
+
         const { error } = await supabase.rpc("record_xp_event", {
           p_amount: payload.amount as number,
           p_reason: (payload.reason as string) || "Activity XP",
           p_branch: (payload.branch as string) || "craft",
-          p_source_type: (payload.sourceType as string) || "activity",
+          p_source_type: safeSource,
         });
         if (error) {
           console.error("[OfflineQueue] record_xp_event RPC error:", error);
