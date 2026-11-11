@@ -2,8 +2,11 @@ import { getISTDate } from "@/lib/utils";
 import { AppShell } from "@/components/layout/AppShell";
 import { TopBar } from "@/components/layout/TopBar";
 import { HeroCard } from "@/components/dashboard/HeroCard";
+import { PeakHourCard, LevelCard } from "@/components/dashboard/SideCards";
 import { TodayTasks } from "@/components/dashboard/TodayTasks";
 import { HabitsStrip } from "@/components/dashboard/HabitsStrip";
+import { QuickHealth } from "@/components/dashboard/QuickHealth";
+import { LifeBalanceRadar } from "@/components/dashboard/LifeBalanceRadar";
 import { format } from "date-fns";
 import { Brain } from "lucide-react";
 import { useAppStore } from "@/lib/store";
@@ -26,22 +29,35 @@ const Dashboard = () => {
         subtitle={format(getISTDate(), "EEEE, MMMM d")}
       />
 
-      <div className="grid grid-cols-1 gap-4 md:gap-5">
-        <div className="w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
+        <div className="lg:col-span-8">
           <HeroCard />
+        </div>
+        <div className="lg:col-span-4 flex flex-col gap-4">
+          <PeakHourCard />
+          <LevelCard />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 mt-4 md:mt-5">
+        <div className="lg:col-span-4">
+          <LifeBalanceRadar />
+        </div>
+        <div className="lg:col-span-8">
+          <TodayTasks />
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 mt-4 md:mt-5">
         <div className="lg:col-span-8">
-          <TodayTasks />
+          <QuickHealth />
         </div>
         <div className="lg:col-span-4">
           <HabitsStrip />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 md:gap-5 mt-4 md:mt-5">
+      <div className="grid grid-cols-1 gap-4 md:gap-5 mt-4 md:mt-5">
         <div className="glass-card flex flex-col md:flex-row items-center justify-between gap-6 p-8 relative overflow-hidden">
           {hellMode ? (
             <>
